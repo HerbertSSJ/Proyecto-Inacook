@@ -1,0 +1,11 @@
+{% extends 'app_gastronomia/base.html' %}
+{% block content %}
+<h1>Platillos</h1>
+<ul>
+    {% for platillo in platillos %}
+        <li>
+            <a href="{% url 'platillo_detail' platillo.pk %}">{{ platillo.nombre }}</a> - ${{ platillo.precio }}
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}

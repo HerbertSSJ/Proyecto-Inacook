@@ -1,0 +1,14 @@
+{% extends 'app_gastronomia/base.html' %}
+{% block content %}
+<h1>Calculadora de precios</h1>
+<form method="post">
+    {% csrf_token %}
+    <input type="text" name="precio" placeholder="Precio 1">
+    <input type="text" name="precio" placeholder="Precio 2">
+    <input type="text" name="precio" placeholder="Precio 3">
+    <button type="submit">Calcular Total</button>
+</form>
+{% if total %}
+<p>Total: ${{ total }}</p>
+{% endif %}
+{% endblock %}

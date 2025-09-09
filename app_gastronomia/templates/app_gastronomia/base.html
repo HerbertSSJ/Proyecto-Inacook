@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gastronomia Inacap</title>
+    <link rel="stylesheet" href="{% static 'app_gastronomia/css/styles.css' %}">
+</head>
+<body>
+    <nav>
+        <a href="{% url 'platillos' %}">Platillos</a> |
+        <a href="{% url 'agregar_platillo' %}">Agregar Platillo</a> |
+        <a href="{% url 'calculadora' %}">Calculadora</a> |
+        <a href="{% url 'perfil' %}">Perfil</a> |
+        <a href="{% url 'logout' %}">Cerrar sesión</a>
+    </nav>
+    <hr>
+    {% block content %}{% endblock %}
+</body>
+</html>
