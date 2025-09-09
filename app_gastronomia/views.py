@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Platillo
 from .forms import RegistroForm, PlatilloForm
 
+
 def home(request):
     return redirect('platillos')
 
@@ -11,7 +12,7 @@ def register_view(request):
     if request.method == "POST":
         form = RegistroForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save() #Esto guarda la contraseña del usuario
             login(request, user)
             return redirect('platillos')
     else:
