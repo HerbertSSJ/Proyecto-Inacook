@@ -1,14 +1,157 @@
 {% extends 'app_gastronomia/base.html' %}
+{% load static %}
+
 {% block content %}
-<h1>Calculadora de precios</h1>
-<form method="post">
-    {% csrf_token %}
-    <input type="text" name="precio" placeholder="Precio 1">
-    <input type="text" name="precio" placeholder="Precio 2">
-    <input type="text" name="precio" placeholder="Precio 3">
-    <button type="submit">Calcular Total</button>
-</form>
-{% if total %}
-<p>Total: ${{ total }}</p>
-{% endif %}
+<style>
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #1e1e1e;
+    color: #fff;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ff4f70;
+    padding: 15px 30px;
+}
+
+.navbar .logo a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.navbar .menu a {
+    color: #fff;
+    text-decoration: none;
+    margin-left: 20px;
+}
+
+.navbar .menu a:hover {
+    text-decoration: underline;
+}
+
+.calculadora {
+    width: 280px;
+    margin: 50px auto;
+    background-color: #3a3a3a;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.display input {
+    width: 100%;
+    height: 50px;
+    font-size: 24px;
+    text-align: right;
+    padding: 5px 10px;
+    border-radius: 10px;
+    border: 2px solid #555;
+    margin-bottom: 15px;
+    background-color: #1e1e1e;
+    color: #fff;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+button.calc-btn {
+    padding: 15px;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #555;
+    color: #fff;
+}
+
+button.calc-btn:hover {
+    background-color: #777;
+}
+
+button.operator {
+    background-color: #ff6f91;
+}
+
+button.operator:hover {
+    background-color: #ff4f70;
+}
+
+button.clear {
+    background-color: #6c757d;
+}
+
+button.clear:hover {
+    background-color: #5a6268;
+}
+</style>
+
+<header class="navbar">
+    <div class="logo">
+        <a href="/">Mi Proyecto</a>
+    </div>
+    <nav class="menu">
+        <a href="/perfil/">Perfil</a>
+        <a href="/logout/">Cerrar Sesión</a>
+    </nav>
+</header>
+
+<div class="calculadora">
+    <div class="display">
+        <input type="text" id="result" value="0" readonly>
+    </div>
+    <div class="buttons">
+        <button class="calc-btn" onclick="appendValue('7')">7</button>
+        <button class="calc-btn" onclick="appendValue('8')">8</button>
+        <button class="calc-btn" onclick="appendValue('9')">9</button>
+        <button class="calc-btn operator" onclick="appendValue('+')">+</button>
+        <button class="calc-btn" onclick="appendValue('4')">4</button>
+        <button class="calc-btn" onclick="appendValue('5')">5</button>
+        <button class="calc-btn" onclick="appendValue('6')">6</button>
+        <button class="calc-btn operator" onclick="appendValue('-')">-</button>
+        <button class="calc-btn" onclick="appendValue('1')">1</button>
+        <button class="calc-btn" onclick="appendValue('2')">2</button>
+        <button class="calc-btn" onclick="appendValue('3')">3</button>
+        <button class="calc-btn operator" onclick="appendValue('*')">x</button>
+        <button class="calc-btn clear" onclick="clearResult()">C</button>
+        <button class="calc-btn" onclick="appendValue('0')">0</button>
+        <button class="calc-btn operator" onclick="CalculateResult()">=</button>
+        <button class="calc-btn operator" onclick="appendValue('/')">/</button>
+    </div>
+</div>
+
+<script>
+let currentInput = "";
+
+function appendValue(value) {
+    currentInput += value;
+    document.getElementById('result').value = currentInput;
+}
+
+function clearResult() {
+    currentInput = "";
+    document.getElementById('result').value = "0";
+}
+
+function CalculateResult() {
+    try {
+        let expression = currentInput.replace(/x/g, "*");
+        let result = eval(expression);
+        document.getElementById('result').value = result;
+        currentInput = result.toString();
+    } catch (error) {
+        document.getElementById('result').value = "Error";
+        currentInput = "";
+    }
+}
+</script>
 {% endblock %}

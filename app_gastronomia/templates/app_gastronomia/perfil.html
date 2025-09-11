@@ -35,55 +35,53 @@ body {
     text-decoration: underline;
 }
 
-.container {
-    max-width: 900px;
-    margin: 30px auto;
+.perfil-container {
+    max-width: 600px;
+    margin: 40px auto;
     padding: 20px;
+    text-align: center;
 }
 
-h1 {
-    text-align: center;
+h2 {
     color: #ff6f91;
     margin-bottom: 30px;
 }
 
-/* Lista de platillos estilo cards */
-ul.platillos-list {
-    list-style: none;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-}
-
-ul.platillos-list li {
+/* Card del perfil */
+.perfil-card {
     background-color: #2c2c2c;
-    padding: 15px;
+    padding: 25px;
     border-radius: 15px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    transition: transform 0.2s ease;
+    margin-bottom: 30px;
 }
 
-ul.platillos-list li:hover {
-    transform: scale(1.05);
-}
-
-ul.platillos-list a {
+.perfil-card h3 {
+    margin-top: 0;
     color: #ff6f91;
-    text-decoration: none;
-    font-size: 18px;
-    font-weight: bold;
 }
 
-ul.platillos-list a:hover {
-    text-decoration: underline;
-}
-
-ul.platillos-list span {
+.perfil-card p {
+    margin: 8px 0;
     color: #fff;
+}
+
+/* Botones */
+.perfil-actions .btn {
+    display: inline-block;
+    padding: 12px 25px;
+    margin: 5px;
     font-size: 16px;
-    display: block;
-    margin-top: 8px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #ff4f70;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.perfil-actions .btn:hover {
+    background-color: #ff6f91;
 }
 </style>
 
@@ -97,15 +95,18 @@ ul.platillos-list span {
     </nav>
 </header>
 
-<div class="container">
-    <h1>Platillos</h1>
-    <ul class="platillos-list">
-        {% for platillo in platillos %}
-            <li>
-                <a href="{% url 'platillo_detail' platillo.pk %}">{{ platillo.nombre }}</a>
-                <span>${{ platillo.precio }}</span>
-            </li>
-        {% endfor %}
-    </ul>
+<div class="perfil-container">
+    <h2>Mi Perfil</h2>
+
+    <div class="perfil-card">
+        <h3>👤 {{ user.username }}</h3>
+        <p><strong>Correo:</strong> {{ user.email }}</p>
+        <p><strong>Fecha de registro:</strong> {{ user.date_joined|date:"d/m/Y" }}</p>
+    </div>
+
+    <div class="perfil-actions">
+        <a href="{% url 'logout' %}" class="btn">Cerrar Sesión</a>
+        <a href="{% url 'platillos' %}" class="btn">Ver Platillos</a>
+    </div>
 </div>
 {% endblock %}

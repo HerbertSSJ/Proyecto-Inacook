@@ -44,13 +44,13 @@ body {
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
-form h1 {
+.container h1 {
     text-align: center;
     color: #ff6f91;
     margin-bottom: 20px;
 }
 
-form input, form select, form textarea, form button {
+form input, form select, form button {
     width: 100%;
     padding: 10px;
     margin-bottom: 15px;
@@ -59,7 +59,7 @@ form input, form select, form textarea, form button {
     font-size: 16px;
 }
 
-form input, form select, form textarea {
+form input, form select {
     background-color: #3a3a3a;
     color: #fff;
 }
@@ -75,6 +75,23 @@ form button {
 form button:hover {
     background-color: #ff4f70;
 }
+
+.costos-lista {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.costos-lista li {
+    background-color: #3a3a3a;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+}
+
+.costos-lista li:last-child {
+    margin-bottom: 0;
+}
 </style>
 
 <header class="navbar">
@@ -88,11 +105,28 @@ form button:hover {
 </header>
 
 <div class="container">
-    <h1>Agregar Platillo</h1>
+    <h1>Agregar Costo a Platillo</h1>
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Agregar</button>
+        <select name="platillo" required>
+            <option value="">Selecciona un platillo</option>
+            {% for p in platillos %}
+                <option value="{{ p.id }}">{{ p.nombre }} - ${{ p.precio }}</option>
+            {% endfor %}
+        </select>
+        <input type="number" name="costo" placeholder="Costo adicional" step="0.01" required>
+        <button type="submit">Agregar Costo</button>
     </form>
+
+    <ul class="costos-lista">
+        {% for c in costos %}
+            <li>
+                <strong>{{ c.platillo }}</strong> - Costo adicional: ${{ c.costo_adicional }}<br>
+                Precio total: ${{ c.precio_total }} - Precio con IVA: ${{ c.precio_con_iva }}
+            </li>
+        {% empty %}
+            <li>No se han agregado costos aún.</li>
+        {% endfor %}
+    </ul>
 </div>
 {% endblock %}

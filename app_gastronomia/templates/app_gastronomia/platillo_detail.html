@@ -1,16 +1,142 @@
 {% extends 'app_gastronomia/base.html' %}
+{% load static %}
+
 {% block content %}
-<h1>{{ platillo.nombre }}</h1>
-<p>{{ platillo.descripcion }}</p>
-<p>Precio: ${{ platillo.precio }}</p>
-<p>Estudiante: {{ platillo.estudiante.username }}</p>
-{% if platillo.imagen %}
-<img src="{{ platillo.imagen }}" alt="{{ platillo.nombre }}" width="300">
+<style>
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #1e1e1e;
+    color: #fff;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ff4f70;
+    padding: 15px 30px;
+}
+
+.navbar .logo a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.navbar .menu a {
+    color: #fff;
+    text-decoration: none;
+    margin-left: 20px;
+}
+
+.navbar .menu a:hover {
+    text-decoration: underline;
+}
+
+.detail-container {
+    max-width: 800px;
+    margin: 60px auto;
+    background-color: #2c2c2c;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.detail-container h1 {
+    color: #ff6f91;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.detail-container img {
+    display: block;
+    margin: 20px auto;
+    border-radius: 15px;
+    max-width: 100%;
+}
+
+.detail-container p {
+    font-size: 18px;
+    margin: 10px 0;
+}
+
+.detail-container h3 {
+    margin-top: 25px;
+    color: #ff6f91;
+}
+
+.detail-container ul {
+    list-style-type: square;
+    padding-left: 20px;
+}
+
+.back-btn {
+    display: inline-block;
+    margin-top: 25px;
+    padding: 10px 20px;
+    background-color: #ff4f70;
+    color: #fff;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background-color: #ff6f91;
+}
+</style>
+
+<header class="navbar">
+    <div class="logo">
+        <a href="/">Mi Proyecto</a>
+    </div>
+    <nav class="menu">
+        <a href="{% url 'platillos' %}">Platillos</a>
+        <a href="{% url 'perfil' %}">Perfil</a>
+    </nav>
+</header>
+
+<div class="detail-container">
+    <h1>{{ platillo.nombre }}</h1>
+    <p>{{ platillo.descripcion }}</p>
+    <p><strong>Precio:</strong> ${{ platillo.precio }}</p>
+    <p><strong>Estudiante:</strong> {{ platillo.estudiante.username }}</p>
+
+    {% if platillo.imagen %}
+        <img src="{{ platillo.imagen }}" alt="{{ platillo.nombre }}">
+    {% endif %}
+
+    <h3>Ingredientes:</h3>
+    <ul>
+        {% for ing in ingredientes %}
+        <li>{{ ing }}</li>
+        {% endfor %}
+    </ul>
+
+    {% if user == platillo.estudiante %}
+    <form method="post" action="{% url 'eliminar_platillo' platillo.pk %}" onsubmit="return confirm('¿Seguro que deseas eliminar este platillo?');">
+        {% csrf_token %}
+        <button type="submit" class="btn-delete">🗑 Eliminar Platillo</button>
+    </form>
 {% endif %}
-<h3>Ingredientes:</h3>
-<ul>
-    {% for ing in ingredientes %}
-    <li>{{ ing }}</li>
-    {% endfor %}
-</ul>
+
+<style>
+.btn-delete {
+    background: #e63946;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-delete:hover {
+    background: #c1121f;
+}
+</style>
+
+    <a href="{% url 'platillos' %}" class="back-btn">← Volver a Platillos</a>
+</div>
 {% endblock %}

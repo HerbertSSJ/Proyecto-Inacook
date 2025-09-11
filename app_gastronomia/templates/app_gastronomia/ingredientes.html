@@ -44,13 +44,13 @@ body {
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
-form h1 {
+.container h1 {
     text-align: center;
     color: #ff6f91;
     margin-bottom: 20px;
 }
 
-form input, form select, form textarea, form button {
+form input, form button {
     width: 100%;
     padding: 10px;
     margin-bottom: 15px;
@@ -59,7 +59,7 @@ form input, form select, form textarea, form button {
     font-size: 16px;
 }
 
-form input, form select, form textarea {
+form input {
     background-color: #3a3a3a;
     color: #fff;
 }
@@ -75,6 +75,23 @@ form button {
 form button:hover {
     background-color: #ff4f70;
 }
+
+.ingredientes-lista {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.ingredientes-lista li {
+    background-color: #3a3a3a;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+}
+
+.ingredientes-lista li:last-child {
+    margin-bottom: 0;
+}
 </style>
 
 <header class="navbar">
@@ -88,11 +105,20 @@ form button:hover {
 </header>
 
 <div class="container">
-    <h1>Agregar Platillo</h1>
+    <h1>Agregar Ingrediente</h1>
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Agregar</button>
+        <input type="text" name="nombre" placeholder="Nombre del ingrediente" required>
+        <input type="text" name="cantidad" placeholder="Cantidad" required>
+        <button type="submit">Agregar Ingrediente</button>
     </form>
+
+    <ul class="ingredientes-lista">
+        {% for ing in ingredientes %}
+            <li>{{ ing.nombre }} - {{ ing.cantidad }}</li>
+        {% empty %}
+            <li>No hay ingredientes aún.</li>
+        {% endfor %}
+    </ul>
 </div>
 {% endblock %}

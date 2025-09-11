@@ -3,7 +3,57 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from .models import Platillo
 from .forms import RegistroForm, PlatilloForm
+from django.shortcuts import render, get_object_or_404, redirect
+from .models import Platillo
 
+from .models import Platillo  # ya lo tienes importado
+
+COSTOS = []
+IVA = 0.19
+
+def costos_view(request):
+    platillos = Platillo.objects.all()  # Traemos los platillos reales de la DB
+
+    if request.method == "POST":
+        platillo_id = int(request.POST.get("platillo"))
+        costo_adicional = float(request.POST.get("costo"))
+
+        platillo = get_object_or_404(Platillo, pk=platillo_id)
+        precio_total = platillo.precio + costo_adicional
+        precio_con_iva = precio_total * (1 + IVA)
+
+        COSTOS.append({
+            "platillo": platillo.nombre,
+            "costo_adicional": costo_adicional,
+            "precio_total": precio_total,
+            "precio_con_iva": round(precio_con_iva, 2)
+        })
+
+        return redirect("costos")
+
+    return render(request, "app_gastronomia/costos.html", {"platillos": platillos, "costos": COSTOS})
+
+
+INGREDIENTES = []
+
+def ingredientes_view(request):
+    if request.method == "POST":
+        nombre = request.POST.get("nombre")
+        cantidad = request.POST.get("cantidad")
+        if nombre and cantidad:
+            INGREDIENTES.append({"nombre": nombre, "cantidad": cantidad})
+        return redirect("ingredientes")
+    return render(request, "app_gastronomia/ingredientes.html", {"ingredientes": INGREDIENTES})
+
+
+
+
+def eliminar_platillo(request, pk):
+    platillo = get_object_or_404(Platillo, pk=pk)
+    # Solo permitir eliminar al dueño del platillo
+    if request.user == platillo.estudiante:
+        platillo.delete()
+    return redirect('platillos')
 
 def home(request):
     return redirect('platillos')
