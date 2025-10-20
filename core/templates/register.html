@@ -1,47 +1,55 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Registro - Inacook</title>
-    <link rel="stylesheet" href="{% static 'core/css/styles.css' %}">
-</head>
-<body>
-    <div class="container">
-        <h1>Crear cuenta</h1>
 
-        {% if messages %}
-            <ul class="messages">
-                {% for message in messages %}
-                    <li class="{{ message.tags }}">{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+{% block title %}Registro - Inacook{% endblock %}
 
-        <form method="POST">
-            {% csrf_token %}
+{% block content %}
+<div class="register-container">
+    <h1>Crear cuenta</h1>
 
-            <label for="nombre">Nombre:</label>
-            <input type="text" name="nombre" id="nombre" required>
+    <!-- Mensajes de error o éxito -->
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 
-            <label for="correo">Correo:</label>
-            <input type="email" name="correo" id="correo" required>
+    <!-- Formulario de registro -->
+    <form method="POST" class="register-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="nombre">Nombre de usuario:</label>
+            <input type="text" name="nombre" id="nombre" required placeholder="Ej: hurb123">
+        </div>
 
+        <div class="form-group">
+            <label for="correo">Correo electrónico:</label>
+            <input type="email" name="correo" id="correo" required placeholder="Ej: hurb@example.com">
+        </div>
+
+        <div class="form-group">
             <label for="contraseña">Contraseña:</label>
-            <input type="password" name="contraseña" id="contraseña" required>
+            <input type="password" name="contraseña" id="contraseña" required placeholder="Tu contraseña">
+        </div>
 
-            <label for="rol">Rol:</label>
+        <div class="form-group">
+            <label for="rol">Selecciona tu rol:</label>
             <select name="rol" id="rol" required>
                 <option value="">Selecciona un rol</option>
                 {% for rol in roles %}
                     <option value="{{ rol.id }}">{{ rol.NombreRol }}</option>
                 {% endfor %}
             </select>
+        </div>
 
-            <button type="submit">Registrarse</button>
-        </form>
+        <button type="submit" class="btn-primary">Registrarse</button>
+    </form>
 
-        <p>¿Ya tienes cuenta? <a href="{% url 'home' %}">Inicia sesión aquí</a></p>
-    </div>
-</body>
-</html>
+    <p class="login-text">
+        ¿Ya tienes cuenta?
+        <a href="{% url 'home' %}" class="link-login">Inicia sesión aquí</a>
+    </p>
+</div>
+{% endblock %}

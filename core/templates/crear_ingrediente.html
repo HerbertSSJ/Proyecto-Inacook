@@ -1,11 +1,28 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Agregar Ingrediente - Inacook{% endblock %}
+
 {% block content %}
 <div class="container">
-    <h1>Agregar Ingrediente</h1>
-    <form method="post">
+    <h1>➕ Agregar Nuevo Ingrediente</h1>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="post" class="formulario">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Guardar</button>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">💾 Guardar</button>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">⬅️ Volver</a>
+        </div>
     </form>
 </div>
 {% endblock %}

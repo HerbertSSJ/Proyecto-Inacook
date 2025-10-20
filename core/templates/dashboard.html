@@ -19,32 +19,29 @@
 
 {% block content %}
 <div class="container">
-    <h1>Bienvenido {{ nombre }} 🍳</h1>
-    <p>Rol: {{ rol }}</p>
-
-    <p>¡Este es tu dashboard! Aquí podrás gestionar todo lo relacionado con tus recetas.</p>
+    <h1>Bienvenido, {{ nombre }} 🍳</h1>
+    <p><strong>Rol:</strong> {{ rol }}</p>
+    <p>¡Este es tu panel principal! Desde aquí puedes gestionar tus recetas y ver tu historial.</p>
 
     <div class="menu">
         <h2>Acciones rápidas</h2>
-        <ul>
-            <li><a href="{% url 'subir_receta' %}" class="btn">🍔 Subir nueva receta</a></li>
-            
-            <li><a href="{% url 'ver_recetas' %}" class="btn">📂 Ver mis recetas</a></li> 
-            
-            <li><a href="{% url 'calculadora' %}" class="btn">🧮 Calculadora</a></li> 
-            
-            <li><a href="{% url 'ver_historial' %}" class="btn">📜 Historial</a></li>
-        {% if user.rol|lower == "profesor" %}
-        <p>Esto solo sera accesible para el profesor. ↓ </p>
-            <li><a href="{% url 'crear_ingrediente' %}" class="btn btn-secondary"> ➕ Agregar Ingrediente</a></li>
-            
-            <li><a href="{% url 'ver_ingredientes' %}" class="btn btn-secondary">🥕 Ver Ingredientes</a></li>
-            
-            <li><a href="{% url 'ver_recetas_alumnos' %}" class="btn btn-secondary">📋 Ver Recetas de Alumnos</a></li>
-            <li><a href="{% url 'crear_unidad_medicion' %}" class="btn btn-secondary">⚖️ Crear Unidad de Medición</a></li>
-        {% endif %}
+        <ul class="menu-list">
+            <li><a href="{% url 'subir_receta' %}" class="btn btn-primary">🍔 Subir nueva receta</a></li>
+            <li><a href="{% url 'ver_recetas' %}" class="btn btn-primary">📂 Ver mis recetas</a></li> 
+            <li><a href="{% url 'calculadora' %}" class="btn btn-primary">🧮 Calculadora</a></li> 
+            <li><a href="{% url 'ver_historial' %}" class="btn btn-primary">📜 Historial</a></li>
         </ul>
+
+        {% if user.rol|lower == "profesor" %}
+        <div class="profesor-section">
+            <h3>Opciones exclusivas para profesor 👨‍🏫</h3>
+            <ul class="menu-list">
+                <li><a href="{% url 'crear_ingrediente' %}" class="btn btn-secondary">➕ Agregar Ingrediente</a></li>
+                <li><a href="{% url 'ver_ingredientes' %}" class="btn btn-secondary">🥕 Ver Ingredientes</a></li>
+                <li><a href="{% url 'ver_recetas_alumnos' %}" class="btn btn-secondary">📋 Ver Recetas de Alumnos</a></li>
+            </ul>
+        </div>
+        {% endif %}
     </div>
-</div>
 </div>
 {% endblock %}

@@ -62,7 +62,7 @@ const addBtn = document.getElementById('add-ingrediente');
 const tableBody = document.querySelector('#ingredientes-table tbody');
 const ingredientesJson = document.getElementById('ingredientes-json');
 
-// todos los ingredientes con su unidad por defecto
+// Mapa de todos los ingredientes con su unidad por defecto
 const ingredientesData = {};
 {% for ingrediente in ingredientes %}
 ingredientesData["{{ ingrediente.IdIngrediente }}"] = {
@@ -78,7 +78,7 @@ const unidadesData = [
     {% endfor %}
 ];
 
-// Actualizar unidad
+// Actualizar unidad al cambiar ingrediente principal
 function actualizarUnidad() {
     const unidadDefault = selectIngrediente.selectedOptions[0].dataset.unidad || '';
     unidadSelect.value = unidadDefault;
@@ -89,7 +89,7 @@ actualizarUnidad();
 // Lista interna de ingredientes
 let ingredientesLista = [];
 
-// Cargar ingredientes existentes
+// Cargar ingredientes existentes al inicio
 {% for ri in receta_ingredientes %}
 ingredientesLista.push({
     id: "{{ ri.Ingrediente_IdIngrediente.IdIngrediente }}",
@@ -98,7 +98,7 @@ ingredientesLista.push({
 });
 {% endfor %}
 
-
+// Renderizar tabla con selects y cantidad editable
 function renderizarTabla() {
     tableBody.innerHTML = '';
     ingredientesLista.forEach((ing, idx) => {
@@ -173,7 +173,7 @@ function renderizarTabla() {
     actualizarJSON();
 }
 
-// Actualizar
+// Actualizar campo oculto
 function actualizarJSON() {
     ingredientesJson.value = JSON.stringify(ingredientesLista);
 }

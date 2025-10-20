@@ -127,14 +127,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'inacook_db',
-        'USER': 'root',
-        'PASSWORD': 'Jorditini1003',
-        'HOST': 'localhost',  
-        'PORT': '3306',       
-    }
-}
-
+# Redirección de login y logout personalizadas
+LOGIN_URL = 'home'               # redirige al login personalizado
+LOGIN_REDIRECT_URL = 'dashboard' # redirige después de iniciar sesión
+LOGOUT_REDIRECT_URL = 'home'     # vuelve al login después de cerrar sesión

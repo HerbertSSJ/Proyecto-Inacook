@@ -1,59 +1,83 @@
 {% extends "base.html" %}
-{% block title %}Recetas de Alumnos{% endblock %}
+{% load static %}
+
+{% block title %}Recetas de Alumnos - Inacook{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4">Recetas Subidas por Alumnos</h1>
+<div class="container">
+    <h1>Recetas de Alumnos 👨‍🍳</h1>
 
     {% if recetas_data %}
-        <div class="recetas-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-            {% for receta_data in recetas_data %}
-                {% with receta=receta_data.receta ingredientes=receta_data.ingredientes precio=receta_data.precio usuario=receta_data.usuario %}
-                <div class="receta-card" style="border: 1px solid #ddd; border-radius: 10px; padding: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-                    
-                    {% if receta.Imagen %}
-                        <img src="{{ receta.Imagen.url }}" alt="{{ receta.Nombre_Receta }}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
-                    {% else %}
-                        <div style="width: 100%; height: 200px; background-color: #f2f2f2; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
-                            <span style="color: #aaa;">Sin imagen</span>
-                        </div>
-                    {% endif %}
+        {% for data in recetas_data %}
+        <div class="receta-card">
+            <h2>{{ data.receta.Nombre_Receta }}</h2>
+            <p><strong>Autor:</strong> {{ data.usuario }}</p>
+            <p><strong>Categoría:</strong> {{ data.receta.Categoria }}</p>
+            <p><strong>Aporte Calórico:</strong> {{ data.receta.Aporte_Calorico }} kcal</p>
+            <p><strong>Tiempo de Preparación:</strong> {{ data.receta.Tiempo_Preparacion }}</p>
 
-                    <h2>{{ receta.Nombre_Receta }}</h2>
-                    <p><strong>Alumno:</strong> {{ usuario }}</p>
-                    <p><strong>Categoría:</strong> {{ receta.Categoria }}</p>
-                    <p><strong>Aporte calórico:</strong> {{ receta.Aporte_Calorico }} kcal</p>
-                    <p><strong>Tiempo de preparación:</strong> {{ receta.Tiempo_Preparacion }}</p>
+            {% if data.receta.Imagen %}
+                <img src="{{ data.receta.Imagen.url }}" alt="Imagen de receta" class="receta-img">
+            {% else %}
+                <div class="no-image">Sin imagen disponible</div>
+            {% endif %}
 
-                    {% if ingredientes %}
-                        <h3>Ingredientes:</h3>
-                        <ul>
-                            {% for ri in ingredientes %}
-                                <li>
-                                    {{ ri.Cantidad }} 
-                                    {{ ri.Unidad|default:"—" }} de 
-                                    {{ ri.Ingrediente_idIngrediente }}
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p>No hay ingredientes agregados.</p>
-                    {% endif %}
+            <h3>Ingredientes</h3>
+            {% if data.ingredientes %}
+                <table class="ingredientes-tabla">
+                    <thead>
+                        <tr>
+                            <th>Ingrediente</th>
+                            <th>Cantidad</th>
+                            <th>Unidad</th>
+                            <th>Precio Unitario ($)</th>
+                            <th>Calidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ing in data.ingredientes %}
+                            {% with ingrediente_obj=ing.Ingrediente_idIngrediente %}
+                                {% with ingrediente=ingrediente_obj|add:"" %}
+                                    {% if ingrediente %}
+                                        {% for obj in ingredientes_global %}
+                                            {% if obj.Nombre_Ingrediente == ing.Ingrediente_idIngrediente %}
+                                                <tr>
+                                                    <td>{{ obj.Nombre_Ingrediente }}</td>
+                                                    <td>{{ ing.Cantidad }}</td>
+                                                    <td>
+                                                        {% if obj.UnidadMedicion_idUnidadMedicion.Nombre_Unidad %}
+                                                            {{ obj.UnidadMedicion_idUnidadMedicion.Nombre_Unidad }}
+                                                            ({{ obj.UnidadMedicion_idUnidadMedicion.Abreviatura }})
+                                                        {% else %}
+                                                            {{ obj.UnidadMedicion_idUnidadMedicion }}
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>${{ obj.Costo_Unitario|floatformat:0 }}</td>
+                                                    <td>{{ obj.Calidad }}</td>
+                                                </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endwith %}
+                            {% endwith %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No se registraron ingredientes.</p>
+            {% endif %}
 
-                    <p><strong>Precio aproximado:</strong> ${{ precio }}</p>
-
-                    <a href="{% url 'comprobante_receta' receta.idReceta %}" class="btn btn-primary" target="_blank">
-                        🧾 Ver Comprobante
-                    </a>
-
-                </div>
-                {% endwith %}
-            {% endfor %}
+            <p class="precio"><strong>Total estimado:</strong> 
+                {% if data.precio != "No calculado" %}
+                    ${{ data.precio|floatformat:0 }}
+                {% else %}
+                    No calculado
+                {% endif %}
+            </p>
         </div>
+        {% endfor %}
     {% else %}
-        <div class="alert alert-info">
-            No hay recetas subidas por los alumnos todavía.
-        </div>
+        <p>No hay recetas de alumnos registradas.</p>
     {% endif %}
 </div>
 {% endblock %}

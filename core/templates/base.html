@@ -3,6 +3,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Inacook{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'core/css/styles.css' %}">
 </head>
@@ -13,11 +14,17 @@
             <a href="{% url 'dashboard' %}" class="nav-logo">Inacook</a>
             <ul class="nav-links">
                 {% block nav_links %}
-                    <li><a href="{% url 'ver_recetas' %}">Mis Recetas</a></li>
-                    <li><a href="{% url 'subir_receta' %}">Subir Receta</a></li>
-                    <li><a href="{% url 'perfil' %}">Perfil</a></li>
-                    <li><a href="{% url 'calculadora' %}">Calculadora</a></li>
                     {% if user.is_authenticated %}
+                        <li><a href="{% url 'ver_recetas' %}">Mis Recetas</a></li>
+                        <li><a href="{% url 'subir_receta' %}">Subir Receta</a></li>
+                        <li><a href="{% url 'perfil' %}">Perfil</a></li>
+                        <li><a href="{% url 'calculadora' %}">Calculadora</a></li>
+
+                        {% if user.rol|lower == "profesor" %}
+                            <li><a href="{% url 'ver_recetas_alumnos' %}">Recetas de Alumnos</a></li>
+                            <li><a href="{% url 'crear_ingrediente' %}">Nuevo Ingrediente</a></li>
+                        {% endif %}
+
                         <li>
                             <form id="logout-form" action="{% url 'logout' %}" method="post" style="display:none;">
                                 {% csrf_token %}
@@ -27,7 +34,7 @@
                             </a>
                         </li>
                     {% else %}
-                        <li><a href="{% url 'login' %}">Iniciar Sesión</a></li>
+                        <li><a href="{% url 'home' %}">Iniciar Sesión</a></li>
                     {% endif %}
                 {% endblock %}
             </ul>
@@ -35,8 +42,12 @@
     </nav>
 
     <!-- Contenido principal -->
-    <div class="content">
-        {% block content %}{% endblock %}
-    </div>
+    <main class="content">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Scripts opcionales -->
+    {% block scripts %}{% endblock %}
 </body>
 </html>

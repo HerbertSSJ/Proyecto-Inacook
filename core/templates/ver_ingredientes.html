@@ -1,31 +1,33 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Ingredientes{% endblock %}
+{% block title %}Ingredientes - Inacook{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1>Ingredientes agregados</h1>
+    <h1>🥕 Ingredientes Agregados</h1>
+
     {% if ingredientes %}
-        <table style="width:100%; border-collapse: collapse;">
+        <table class="tabla-ingredientes">
             <thead>
                 <tr>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Nombre</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Costo Unitario</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Unidad de Medición</th>
+                    <th>Nombre</th>
+                    <th>Costo Unitario</th>
+                    <th>Unidad de Medición</th>
                 </tr>
             </thead>
             <tbody>
                 {% for ing in ingredientes %}
                 <tr>
-                    <td style="border: 1px solid #ddd; padding: 8px;">{{ ing.Nombre_Ingrediente }}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">${{ ing.Costo_Unitario|floatformat:2 }}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">{{ ing.UnidadMedicion_idUnidadMedicion.Abreviatura }}</td>
+                    <td>{{ ing.Nombre_Ingrediente }}</td>
+                    <td>${{ ing.Costo_Unitario|floatformat:2 }}</td>
+                    <td>{{ ing.unidad_nombre|default:ing.UnidadMedicion_idUnidadMedicion }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     {% else %}
-        <p>No hay ingredientes agregados.</p>
+        <p class="sin-datos">No hay ingredientes agregados.</p>
     {% endif %}
 </div>
 {% endblock %}

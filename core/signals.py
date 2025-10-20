@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, pre_delete, post_migrate
 from django.dispatch import receiver
 from .models import Receta, Historial, Rol
-
+from .models import UnidadMedicion
 # -------------------- CREACIÓN / MODIFICACIÓN --------------------
 @receiver(post_save, sender=Receta)
 def registrar_creacion_modificacion(sender, instance, created, **kwargs):
@@ -38,3 +38,27 @@ def crear_roles_por_defecto(sender, **kwargs):
         roles = ['Profesor', 'Alumno']
         for nombre in roles:
             Rol.objects.get_or_create(NombreRol=nombre)
+
+#-----------------unidades de medicion-----------------------
+
+@receiver(post_migrate)
+def crear_unidades_por_defecto(sender, **kwargs):
+    """
+    Crea automáticamente unidades de medición al migrar o iniciar el proyecto.
+    Solo se crean si no existen.
+    """
+    unidades = [
+        ("Gramos", "g"),
+        ("Kilogramos", "kg"),
+        ("Mililitros", "ml"),
+        ("Litros", "l"),
+        ("Unidad", "u"),
+        ("Cucharada", "cda"),
+        ("Cucharadita", "cdta"),
+        ("Pizca", "pz"),
+    ]
+
+    for nombre, abrev in unidades:
+        UnidadMedicion.objects.get_or_create(Nombre_Unidad=nombre, Abreviatura=abrev)
+
+    print("✅ Unidades de medición verificadas o creadas correctamente.")

@@ -1,36 +1,40 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Login - Inacook</title>
-    <link rel="stylesheet" href="{% static 'core/css/styles.css' %}">
-</head>
-<body>
-    <div class="container">
-        <h1>Iniciar sesión</h1>
 
-        {% if messages %}
-            <ul class="messages">
-                {% for message in messages %}
-                    <li class="{{ message.tags }}">{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+{% block title %}Iniciar sesión - Inacook{% endblock %}
 
-        <form method="POST">
-            {% csrf_token %}
+{% block content %}
+<div class="login-container">
+    <h1>Iniciar sesión</h1>
 
-            <label for="nombre">Nombre:</label>
-            <input type="text" name="nombre" id="nombre" required>
+    <!-- Mensajes de éxito o error -->
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 
+    <!-- Formulario de login -->
+    <form method="POST" class="login-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="nombre">Nombre de usuario:</label>
+            <input type="text" name="nombre" id="nombre" required placeholder="Ej: hurb123">
+        </div>
+
+        <div class="form-group">
             <label for="contraseña">Contraseña:</label>
-            <input type="password" name="contraseña" id="contraseña" required>
+            <input type="password" name="contraseña" id="contraseña" required placeholder="Tu contraseña">
+        </div>
 
-            <button type="submit">Iniciar sesión</button>
-        </form>
+        <button type="submit" class="btn-primary">Iniciar sesión</button>
+    </form>
 
-        <p>¿No tienes cuenta? <a href="{% url 'register' %}">Regístrate aquí</a></p>
-    </div>
-</body>
-</html>
+    <p class="register-text">
+        ¿No tienes cuenta?
+        <a href="{% url 'register' %}" class="link-register">Regístrate aquí</a>
+    </p>
+</div>
+{% endblock %}

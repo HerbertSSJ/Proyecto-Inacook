@@ -1,7 +1,7 @@
 /* ------------------- BODY ------------------- */
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #1e1e1e; /* gris oscuro suave */
+    background-color: #1e1e1e;
     color: #f8f8f8;
     margin: 0;
     padding: 0;
@@ -58,7 +58,6 @@ body {
     transition: color 0.3s ease;
 }
 
-/* Subrayado animado */
 .nav-links li a::after {
     content: '';
     position: absolute;
@@ -70,7 +69,6 @@ body {
     transition: width 0.3s ease;
 }
 
-/* Hover */
 .nav-links li a:hover {
     color: #ff4d4d;
 }
@@ -93,7 +91,7 @@ body {
     border-radius: 20px;
     box-shadow: 0 6px 15px rgba(255, 77, 77, 0.15);
     width: 100%;
-    max-width: 500px;
+    max-width: 900px;
     margin: auto;
     transition: all 0.3s ease;
 }
@@ -142,9 +140,8 @@ button, .btn {
     transition: all 0.3s ease;
     font-weight: bold;
     text-transform: uppercase;
-    /* Importante para que los enlaces actúen como bloques dentro de los LI */
-    display: block; 
-    text-align: center; 
+    display: block;
+    text-align: center;
 }
 
 button:hover, .btn:hover {
@@ -154,16 +151,69 @@ button:hover, .btn:hover {
     transform: scale(1.03);
 }
 
-/* Estilo para el botón secundario (usado por el profesor) */
 .btn-secondary {
-    background-color: #3d3d3d !important; /* Gris oscuro para el fondo */
-    color: #ff4d4d !important; /* Color principal para el texto */
+    background-color: #3d3d3d !important;
+    color: #ff4d4d !important;
     border: 1px solid #ff4d4d !important;
 }
 
 .btn-secondary:hover {
     background-color: #ff4d4d !important;
     color: #fff !important;
+}
+
+/* ------------------- MENSAJES ------------------- */
+.messages {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.messages li {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 6px;
+}
+
+.messages .success {
+    background-color: #1f3d1f;
+    color: #b8ffb8;
+}
+
+.messages .error {
+    background-color: #3d1f1f;
+    color: #ffb8b8;
+}
+
+/* ------------------- TABLAS ------------------- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #2e2e2e;
+    color: #f8f8f8;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(255, 77, 77, 0.2);
+}
+
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid #444;
+    text-align: center;
+}
+
+th {
+    background-color: #ff4d4d;
+    color: #fff;
+}
+
+tr:nth-child(even) {
+    background-color: #252525;
+}
+
+tr:hover {
+    background-color: #3a3a3a;
 }
 
 /* ------------------- RECETA CARDS ------------------- */
@@ -181,34 +231,72 @@ button:hover, .btn:hover {
     box-shadow: 0 0 25px rgba(255, 0, 0, 0.25);
 }
 
-.receta-card h4 {
-    color: #ff4d4d;
-    margin-top: 0;
+.receta-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
 }
 
-.receta-card p, .receta-card ul {
-    color: #f2f2f2;
+.no-image {
+    background-color: #3a3a3a;
+    color: #aaa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    border-radius: 8px;
 }
 
-/* ------------------- (DASHBOARD) ------------------- */
+.comprobante {
+    background: #1f1f1f;
+    border: 1px solid #ff4d4d;
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 15px;
+}
+
+/* ------------------- FORMULARIOS ------------------- */
+.formulario {
+    background-color: #2a2a2a;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 2px 6px rgba(255, 0, 0, 0.2);
+    width: 60%;
+    margin: 20px auto;
+}
+
+/* ------------------- COMPROBANTE PAGE ------------------- */
+.comprobante-container {
+    background-color: #2a2a2a;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px rgba(255, 0, 0, 0.2);
+    max-width: 800px;
+    margin: 40px auto;
+}
+
+.comprobante-totales {
+    text-align: right;
+    margin-top: 30px;
+    font-size: 16px;
+}
+
+/* ------------------- DASHBOARD MENU ------------------- */
 .menu ul {
-    /* Quitamos el padding por defecto para que la lista empiece al borde del contenedor */
     padding: 0;
     list-style: none;
 }
 
 .menu ul li {
-    /* Espacio vertical entre cada acción */
     margin-bottom: 12px;
-    /* Aseguramos que los elementos tomen su propia línea */
-    display: block; 
+    display: block;
 }
 
-/* Estilo Base para los enlaces de texto que NO son botones */
 .menu ul li a:not(.btn) {
     color: #f8f8f8;
     text-decoration: none;
-    display: inline-block; /* Se comporta como texto normal */
+    display: inline-block;
     padding: 5px 0;
     font-weight: 400;
     transition: color 0.3s;
@@ -219,84 +307,6 @@ button:hover, .btn:hover {
     text-decoration: underline;
 }
 
-/* ------------------- CALCULADORA ------------------- */
-
-/* Contenedor central de la calculadora */
-.calculadora-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 80vh; 
-}
-
-/* Contenedor de la calculadora */
-.calculadora {
-    width: 320px;
-    padding: 35px;
-    border-radius: 20px;
-    background-color: rgba(30, 30, 30, 0.9); 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    color: #ffffff;
-}
-
-/* Display */
-.display input {
-    width: 100%;
-    height: 50px;
-    font-size: 24px;
-    text-align: right;
-    padding: 5px 10px;
-    border-radius: 12px;
-    border: 2px solid #555;
-    margin-bottom: 15px;
-    background-color: #2e2e2e;
-    color: #ffffff;
-    transition: all 0.3s ease;
-}
-
-.display input:focus {
-    border-color: #ff3434;
-    box-shadow: 0 0 8px #ff0000;
-    outline: none;
-}
-
-/* Botones */
-.buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-}
-
-.buttons button {
-    padding: 15px;
-    font-size: 18px;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background-color: #ff4343; 
-    color: #fff;
-    font-weight: bold;
-    display: block; /* Vuelve a poner display block para los botones de la calculadora */
-}
-
-.buttons button:hover {
-    background-color: #8b2020; 
-    transform: scale(1.05);
-}
-
-/* Botones especiales */
-.buttons button.operator {
-    background-color: #ff4343; 
-}
-
-.buttons button.clear {
-    background-color: #6c757d;
-}
-
-.buttons button.clear:hover {
-    background-color: #5a6268;
-}
 /* ------------------- RESPONSIVE ------------------- */
 @media (max-width: 600px) {
     .nav-container {
@@ -314,7 +324,108 @@ button:hover, .btn:hover {
         padding: 15px;
     }
 
-    .calculadora {
-        width: 95%;
+    .formulario {
+        width: 90%;
     }
+}
+/* ------------------- CALCULADORA ------------------- */
+
+.calculadora-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh;
+}
+
+.calculadora {
+    width: 340px;
+    padding: 30px;
+    border-radius: 20px;
+    background-color: #2a2a2a;
+    box-shadow: 0 10px 25px rgba(255, 0, 0, 0.3);
+    color: #ffffff;
+}
+
+.display input {
+    width: 100%;
+    height: 55px;
+    font-size: 26px;
+    text-align: right;
+    padding: 10px;
+    border-radius: 12px;
+    border: 2px solid #ff4d4d;
+    margin-bottom: 20px;
+    background-color: #1f1f1f;
+    color: #ffffff;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 🔹 4 columnas */
+    gap: 10px;
+}
+
+.buttons button {
+    padding: 18px;
+    font-size: 20px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #ff4d4d;
+    color: #fff;
+    font-weight: bold;
+}
+
+.buttons button:hover {
+    background-color: #fff;
+    color: #ff4d4d;
+    transform: scale(1.05);
+}
+
+/* Botones especiales */
+.buttons button.operator {
+    background-color: #ff6b6b;
+}
+
+.buttons button.clear {
+    background-color: #444;
+}
+
+.buttons button.clear:hover {
+    background-color: #ff4d4d;
+    color: white;
+}
+
+/* ----------- FIX: VISIBILIDAD DEL SELECT DE INGREDIENTES ----------- */
+.ingrediente-form select {
+    background-color: #1f1f1f !important;  /* Fondo oscuro igual que los inputs */
+    color: #fff !important;                /* Texto blanco para contraste */
+    border: 1px solid #ff4d4d !important;  /* Borde rojo */
+    border-radius: 10px;
+    padding: 0.6rem;
+    font-size: 1rem;
+    width: 100%;
+    max-width: 250px;                      /* Controla ancho */
+    appearance: none;                      /* Oculta flecha nativa */
+    background-image: linear-gradient(45deg, transparent 50%, #ff4d4d 50%), 
+                      linear-gradient(135deg, #ff4d4d 50%, transparent 50%);
+    background-position: calc(100% - 15px) calc(1em + 2px), calc(100% - 10px) calc(1em + 2px);
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+}
+
+.ingrediente-form select:focus {
+    box-shadow: 0 0 10px #ff4d4d;
+    outline: none;
+}
+
+/* Ajusta el contenedor de select + input + unidad */
+.ingrediente-form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
 }

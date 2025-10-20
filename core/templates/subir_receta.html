@@ -1,73 +1,92 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Subir Receta - Inacook{% endblock %}
 
 {% block content %}
 <div class="container">
     <h1>Subir nueva receta</h1>
 
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
     <form method="POST" enctype="multipart/form-data" id="receta-form">
         {% csrf_token %}
         <h2>Datos de la receta</h2>
-        {{ receta_form.as_p }}
+        <div class="form-section">
+            {{ receta_form.as_p }}
+        </div>
 
         <h2>Ingredientes</h2>
         <div class="ingrediente-form">
-            <select id="ingrediente-select">
+            <label for="ingrediente-select">Ingrediente:</label>
+            <select id="ingrediente-select" class="form-select">
+                <option value="">Selecciona un ingrediente</option>
                 {% for ingrediente in ingredientes %}
-                <option value="{{ ingrediente.idIngrediente }}" 
-                        data-unidad="{{ ingrediente.UnidadMedicion_idUnidadMedicion }}"
-                        data-precio="{{ ingrediente.Costo_Unitario }}"
-                        data-calidad="{{ ingrediente.Calidad }}">
-                    {{ ingrediente.Nombre_Ingrediente }}
-                </option>
+                    <option value="{{ ingrediente.idIngrediente }}"
+                            data-precio="{{ ingrediente.Costo_Unitario }}"
+                            data-calidad="{{ ingrediente.Calidad }}">
+                        {{ ingrediente.Nombre_Ingrediente }}
+                    </option>
                 {% endfor %}
             </select>
 
-            <input type="number" step="0.01" id="cantidad-input" placeholder="Cantidad">
-            <input type="text" id="unidad-input" readonly placeholder="Unidad">
-            <button type="button" id="add-ingrediente">Agregar</button>
+            <label for="cantidad-input">Cantidad:</label>
+            <input type="number" step="0.01" id="cantidad-input" placeholder="Cantidad" class="form-control">
+
+            <label for="unidad-select">Unidad de Medición:</label>
+            <select id="unidad-select" class="form-select">
+                <option value="">Selecciona una unidad</option>
+                {% for unidad in unidades %}
+                    <option value="{{ unidad.Nombre_Unidad }}">
+                        {{ unidad.Nombre_Unidad }} ({{ unidad.Abreviatura }})
+                    </option>
+                {% endfor %}
+            </select>
+
+            <button type="button" id="add-ingrediente" class="btn btn-primary">AGREGAR</button>
         </div>
 
-        <table id="ingredientes-table" border="1" style="margin-top:10px;">
+        <table id="ingredientes-table" class="ingredientes-tabla">
             <thead>
                 <tr>
                     <th>Ingrediente</th>
                     <th>Cantidad</th>
                     <th>Unidad</th>
-                    <th>Acción</th>
                     <th>Precio</th>
                     <th>Calidad</th>
+                    <th>Acción</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
 
         <input type="hidden" name="ingredientes_json" id="ingredientes-json">
-        <br>
-        <button type="submit">Subir receta</button>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success">SUBIR RECETA</button>
+        </div>
     </form>
 </div>
 
+{% block scripts %}
 <script>
+// --- Variables ---
 const selectIngrediente = document.getElementById('ingrediente-select');
 const cantidadInput = document.getElementById('cantidad-input');
-const unidadInput = document.getElementById('unidad-input');
+const unidadSelect = document.getElementById('unidad-select');
 const addBtn = document.getElementById('add-ingrediente');
 const tableBody = document.querySelector('#ingredientes-table tbody');
 const ingredientesJson = document.getElementById('ingredientes-json');
 
-// Actualizar unidad al cambiar ingrediente
-function actualizarUnidad() {
-    const unidad = selectIngrediente.selectedOptions[0].dataset.unidad || '';
-    unidadInput.value = unidad;
-}
-selectIngrediente.addEventListener('change', actualizarUnidad);
-actualizarUnidad();
-
-// Lista interna de ingredientes
 let ingredientesLista = [];
 
-// Renderizar tabla
+// --- Renderizar Tabla ---
 function renderizarTabla() {
     tableBody.innerHTML = '';
     ingredientesLista.forEach((ing, idx) => {
@@ -76,13 +95,13 @@ function renderizarTabla() {
             <td>${ing.nombre}</td>
             <td>${ing.cantidad}</td>
             <td>${ing.unidad}</td>
-            <td><button type="button" data-idx="${idx}">Eliminar</button></td>
-            <td>${ing.precio}</td>
+            <td>$${ing.precio.toFixed(0)}</td>
             <td>${ing.calidad}</td>
+            <td><button type="button" class="btn btn-secondary" data-idx="${idx}">Eliminar</button></td>
         `;
         tableBody.appendChild(row);
 
-        // Botón eliminar
+        // Eliminar fila
         row.querySelector('button').addEventListener('click', e => {
             const index = e.target.dataset.idx;
             ingredientesLista.splice(index, 1);
@@ -92,21 +111,36 @@ function renderizarTabla() {
     ingredientesJson.value = JSON.stringify(ingredientesLista);
 }
 
-// Agregar ingrediente a la tabla
+// --- Agregar Ingrediente ---
 addBtn.addEventListener('click', () => {
     const id = selectIngrediente.value;
-    const nombre = selectIngrediente.selectedOptions[0].text;
+    const nombre = selectIngrediente.selectedOptions[0]?.text || '';
     const cantidad = parseFloat(cantidadInput.value);
-    const unidad = unidadInput.value;
-    const precio = parseFloat(selectIngrediente.selectedOptions[0].dataset.precio) || 0;
-    const calidad = selectIngrediente.selectedOptions[0].dataset.calidad || '';
+    const unidad = unidadSelect.value;
+    const precio = parseFloat(selectIngrediente.selectedOptions[0]?.dataset.precio) || 0;
+    const calidad = selectIngrediente.selectedOptions[0]?.dataset.calidad || '';
 
-    if (!id) return alert("Selecciona un ingrediente válido.");
-    if (!cantidad || cantidad <= 0) return alert("Ingresa una cantidad válida.");
+    if (!id) return mostrarError("Selecciona un ingrediente válido.");
+    if (!cantidad || cantidad <= 0) return mostrarError("Ingresa una cantidad válida.");
+    if (!unidad) return mostrarError("Selecciona una unidad de medición.");
 
-    ingredientesLista.push({id, nombre, cantidad, unidad, precio, calidad});
+    ingredientesLista.push({ id, nombre, cantidad, unidad, precio, calidad });
     renderizarTabla();
+
     cantidadInput.value = '';
+    unidadSelect.value = '';
+    selectIngrediente.value = '';
 });
+
+// --- Mostrar Error ---
+function mostrarError(mensaje) {
+    const errorBox = document.createElement('p');
+    errorBox.textContent = mensaje;
+    errorBox.style.color = 'red';
+    errorBox.style.marginTop = '10px';
+    document.querySelector('.ingrediente-form').appendChild(errorBox);
+    setTimeout(() => errorBox.remove(), 3000);
+}
 </script>
+{% endblock %}
 {% endblock %}
