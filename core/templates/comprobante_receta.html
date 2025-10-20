@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Comprobante - {{ receta.Nombre_Receta }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: auto; padding: 20px; border: 1px solid #000; font-family: monospace;">
+    <h2 style="text-align: center;">🧾 Comprobante de {{ receta.Nombre_Receta }}</h2>
+
+<h3>Ingredientes:</h3>
+<ul>
+    {% for i in ingredientes %}
+        <li>{{ i.cantidad }} {{ i.unidad }} de {{ i.nombre }} - ${{ i.subtotal|floatformat:2 }}</li>
+    {% endfor %}
+</ul>
+
+
+    <hr>
+    {% if comprobante %}
+        <p><strong>Costo de ingredientes:</strong> ${{ comprobante.Costo_Total|floatformat:2 }}</p>
+        <p><strong>Factor de multiplicación (mano de obra, margen):</strong> x{{ comprobante.Factor_Multiplicacion }}</p>
+        <p><strong>IVA:</strong> ${{ comprobante.Iva|floatformat:2 }}</p>
+        <h3 style="text-align: right;">Total: ${{ comprobante.Precio_Bruto|floatformat:2 }}</h3>
+    {% else %}
+        <p>No se ha calculado el comprobante todavía.</p>
+    {% endif %}
+</div>
+{% endblock %}

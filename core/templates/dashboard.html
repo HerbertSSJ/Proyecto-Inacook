@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - Inacook{% endblock %}
+
+{% block nav_links %}
+    <li><a href="{% url 'perfil' %}">Perfil</a></li>
+    {% if user.is_authenticated %}
+        <li>
+            <form id="logout-form" action="{% url 'logout' %}" method="post" style="display:none;">
+                {% csrf_token %}
+            </form>
+            <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                Cerrar Sesión
+            </a>
+        </li>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Bienvenido {{ nombre }} 🍳</h1>
+    <p>Rol: {{ rol }}</p>
+
+    <p>¡Este es tu dashboard! Aquí podrás gestionar todo lo relacionado con tus recetas.</p>
+
+    <div class="menu">
+        <h2>Acciones rápidas</h2>
+        <ul>
+            <li><a href="{% url 'subir_receta' %}" class="btn">🍔 Subir nueva receta</a></li>
+            
+            <li><a href="{% url 'ver_recetas' %}" class="btn">📂 Ver mis recetas</a></li> 
+            
+            <li><a href="{% url 'calculadora' %}" class="btn">🧮 Calculadora</a></li> 
+            
+            <li><a href="{% url 'ver_historial' %}" class="btn">📜 Historial</a></li>
+        {% if user.rol|lower == "profesor" %}
+        <p>Esto solo sera accesible para el profesor. ↓ </p>
+            <li><a href="{% url 'crear_ingrediente' %}" class="btn btn-secondary"> ➕ Agregar Ingrediente</a></li>
+            
+            <li><a href="{% url 'ver_ingredientes' %}" class="btn btn-secondary">🥕 Ver Ingredientes</a></li>
+            
+            <li><a href="{% url 'ver_recetas_alumnos' %}" class="btn btn-secondary">📋 Ver Recetas de Alumnos</a></li>
+            <li><a href="{% url 'crear_unidad_medicion' %}" class="btn btn-secondary">⚖️ Crear Unidad de Medición</a></li>
+        {% endif %}
+        </ul>
+    </div>
+</div>
+</div>
+{% endblock %}

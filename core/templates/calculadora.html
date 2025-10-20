@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="calculadora-container">
+    <div class="calculadora">
+        <div class="display">
+            <input type="text" id="result" value="0" readonly>
+        </div>
+        <div class="buttons">
+            <button onclick="appendValue('7')">7</button>
+            <button onclick="appendValue('8')">8</button>
+            <button onclick="appendValue('9')">9</button>
+            <button class="operator" onclick="appendValue('+')">+</button>
+            <button onclick="appendValue('4')">4</button>
+            <button onclick="appendValue('5')">5</button>
+            <button onclick="appendValue('6')">6</button>
+            <button class="operator" onclick="appendValue('-')">-</button>
+            <button onclick="appendValue('1')">1</button>
+            <button onclick="appendValue('2')">2</button>
+            <button onclick="appendValue('3')">3</button>
+            <button class="operator" onclick="appendValue('*')">x</button>
+            <button class="clear" onclick="clearResult()">C</button>
+            <button onclick="appendValue('0')">0</button>
+            <button class="operator" onclick="CalculateResult()">=</button>
+            <button class="operator" onclick="appendValue('/')">/</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentInput = "";
+
+// Agregar numeros y operadores
+function appendValue(value) {
+    currentInput += value;
+    document.getElementById('result').value = currentInput;
+}
+
+// Limpiar input
+function clearResult() {
+    currentInput = "";
+    document.getElementById('result').value = "0";
+}
+
+// Calcular resultado
+function CalculateResult() {
+    try {
+        let expression = currentInput.replace(/x/g, "*");
+        let result = eval(expression);
+        document.getElementById('result').value = result;
+        currentInput = result.toString();
+    } catch (error) {
+        document.getElementById('result').value = "Error";
+        currentInput = "";
+    }
+}
+</script>
+{% endblock %}

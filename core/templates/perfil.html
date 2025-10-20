@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Perfil{% endblock %}
+{% block content %}
+<div class="perfil-container">
+    <h1>Mi Perfil</h1>
+
+    <form method="POST" action="">
+        {% csrf_token %}
+        <div class="perfil-info">
+            <p>
+                <strong>Nombre de usuario:</strong>
+                <input type="text" name="username" value="{{ usuario.username }}">
+            </p>
+            <p>
+                <strong>Correo:</strong>
+                <input type="email" name="email" value="{{ usuario.email }}">
+            </p>
+            <p>
+                <strong>Rol:</strong>
+                {{ rol}}  <!-- solo mostramos el rol -->
+            </p>
+        </div>
+
+        <div class="perfil-actions">
+            <button type="submit" class="btn">Guardar cambios</button>
+            <a href="{% url 'cambiar_contraseña' %}" class="btn">Cambiar contraseña</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

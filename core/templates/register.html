@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro - Inacook</title>
+    <link rel="stylesheet" href="{% static 'core/css/styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1>Crear cuenta</h1>
+
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <label for="nombre">Nombre:</label>
+            <input type="text" name="nombre" id="nombre" required>
+
+            <label for="correo">Correo:</label>
+            <input type="email" name="correo" id="correo" required>
+
+            <label for="contraseña">Contraseña:</label>
+            <input type="password" name="contraseña" id="contraseña" required>
+
+            <label for="rol">Rol:</label>
+            <select name="rol" id="rol" required>
+                <option value="">Selecciona un rol</option>
+                {% for rol in roles %}
+                    <option value="{{ rol.id }}">{{ rol.NombreRol }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Registrarse</button>
+        </form>
+
+        <p>¿Ya tienes cuenta? <a href="{% url 'home' %}">Inicia sesión aquí</a></p>
+    </div>
+</body>
+</html>

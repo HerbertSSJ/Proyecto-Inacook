@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Cambiar contraseña{% endblock %}
+{% block content %}
+<div class="perfil-container">
+    <h2>Cambiar Contraseña</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn">Guardar cambios</button>
+    </form>
+
+    <a href="{% url 'perfil' %}" class="btn" style="background-color:#888">Volver</a>
+</div>
+{% endblock %}

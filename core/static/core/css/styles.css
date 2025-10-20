@@ -1,0 +1,320 @@
+/* ------------------- BODY ------------------- */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #1e1e1e; /* gris oscuro suave */
+    color: #f8f8f8;
+    margin: 0;
+    padding: 0;
+}
+
+/* ------------------- NAVBAR ------------------- */
+.navbar {
+    background-color: #2b2b2b;
+    box-shadow: 0 2px 10px rgba(255, 77, 77, 0.2);
+    padding: 12px 30px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.nav-logo {
+    font-weight: bold;
+    font-size: 1.8rem;
+    color: #ff4d4d;
+    text-decoration: none;
+    letter-spacing: 1px;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.nav-logo:hover {
+    color: #fff;
+    transform: scale(1.05);
+}
+
+/* ------------------- NAV LINKS ------------------- */
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 25px;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links li a {
+    position: relative;
+    color: #f0f0f0;
+    text-decoration: none;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    padding: 6px 0;
+    transition: color 0.3s ease;
+}
+
+/* Subrayado animado */
+.nav-links li a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0%;
+    height: 2px;
+    background-color: #ff4d4d;
+    transition: width 0.3s ease;
+}
+
+/* Hover */
+.nav-links li a:hover {
+    color: #ff4d4d;
+}
+
+.nav-links li a:hover::after {
+    width: 100%;
+}
+
+/* ------------------- CONTENT ------------------- */
+.content {
+    padding: 30px;
+    max-width: 900px;
+    margin: 40px auto;
+}
+
+/* ------------------- CONTAINERS ------------------- */
+.container {
+    background: #2a2a2a;
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 6px 15px rgba(255, 77, 77, 0.15);
+    width: 100%;
+    max-width: 500px;
+    margin: auto;
+    transition: all 0.3s ease;
+}
+
+.container:hover {
+    box-shadow: 0 0 20px rgba(255, 77, 77, 0.3);
+}
+
+h1, h2, h3 {
+    color: #ff4d4d;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+/* ------------------- FORM ------------------- */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+input, select, textarea {
+    padding: 0.8rem;
+    border: 1px solid #ff4d4d;
+    border-radius: 10px;
+    background-color: #1f1f1f;
+    color: #fff;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #fff;
+    box-shadow: 0 0 8px #ff4d4d;
+    outline: none;
+}
+
+/* ------------------- BUTTONS ------------------- */
+button, .btn {
+    background-color: #ff4d4d;
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    padding: 0.8rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    text-transform: uppercase;
+    /* Importante para que los enlaces actúen como bloques dentro de los LI */
+    display: block; 
+    text-align: center; 
+}
+
+button:hover, .btn:hover {
+    background-color: #fff;
+    color: #ff4d4d;
+    box-shadow: 0 0 15px #ff4d4d;
+    transform: scale(1.03);
+}
+
+/* Estilo para el botón secundario (usado por el profesor) */
+.btn-secondary {
+    background-color: #3d3d3d !important; /* Gris oscuro para el fondo */
+    color: #ff4d4d !important; /* Color principal para el texto */
+    border: 1px solid #ff4d4d !important;
+}
+
+.btn-secondary:hover {
+    background-color: #ff4d4d !important;
+    color: #fff !important;
+}
+
+/* ------------------- RECETA CARDS ------------------- */
+.receta-card {
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 25px;
+    background-color: #2e2e2e;
+    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.15);
+    transition: all 0.3s ease;
+}
+
+.receta-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0 25px rgba(255, 0, 0, 0.25);
+}
+
+.receta-card h4 {
+    color: #ff4d4d;
+    margin-top: 0;
+}
+
+.receta-card p, .receta-card ul {
+    color: #f2f2f2;
+}
+
+/* ------------------- (DASHBOARD) ------------------- */
+.menu ul {
+    /* Quitamos el padding por defecto para que la lista empiece al borde del contenedor */
+    padding: 0;
+    list-style: none;
+}
+
+.menu ul li {
+    /* Espacio vertical entre cada acción */
+    margin-bottom: 12px;
+    /* Aseguramos que los elementos tomen su propia línea */
+    display: block; 
+}
+
+/* Estilo Base para los enlaces de texto que NO son botones */
+.menu ul li a:not(.btn) {
+    color: #f8f8f8;
+    text-decoration: none;
+    display: inline-block; /* Se comporta como texto normal */
+    padding: 5px 0;
+    font-weight: 400;
+    transition: color 0.3s;
+}
+
+.menu ul li a:not(.btn):hover {
+    color: #ff4d4d;
+    text-decoration: underline;
+}
+
+/* ------------------- CALCULADORA ------------------- */
+
+/* Contenedor central de la calculadora */
+.calculadora-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80vh; 
+}
+
+/* Contenedor de la calculadora */
+.calculadora {
+    width: 320px;
+    padding: 35px;
+    border-radius: 20px;
+    background-color: rgba(30, 30, 30, 0.9); 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    color: #ffffff;
+}
+
+/* Display */
+.display input {
+    width: 100%;
+    height: 50px;
+    font-size: 24px;
+    text-align: right;
+    padding: 5px 10px;
+    border-radius: 12px;
+    border: 2px solid #555;
+    margin-bottom: 15px;
+    background-color: #2e2e2e;
+    color: #ffffff;
+    transition: all 0.3s ease;
+}
+
+.display input:focus {
+    border-color: #ff3434;
+    box-shadow: 0 0 8px #ff0000;
+    outline: none;
+}
+
+/* Botones */
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.buttons button {
+    padding: 15px;
+    font-size: 18px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #ff4343; 
+    color: #fff;
+    font-weight: bold;
+    display: block; /* Vuelve a poner display block para los botones de la calculadora */
+}
+
+.buttons button:hover {
+    background-color: #8b2020; 
+    transform: scale(1.05);
+}
+
+/* Botones especiales */
+.buttons button.operator {
+    background-color: #ff4343; 
+}
+
+.buttons button.clear {
+    background-color: #6c757d;
+}
+
+.buttons button.clear:hover {
+    background-color: #5a6268;
+}
+/* ------------------- RESPONSIVE ------------------- */
+@media (max-width: 600px) {
+    .nav-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .nav-links {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .container, .content {
+        padding: 15px;
+    }
+
+    .calculadora {
+        width: 95%;
+    }
+}
