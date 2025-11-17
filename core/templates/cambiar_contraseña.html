@@ -1,15 +1,45 @@
 {% extends "base.html" %}
 {% block title %}Cambiar contraseña{% endblock %}
+
 {% block content %}
 <div class="perfil-container">
-    <h2>Cambiar Contraseña</h2>
+    <h1>Cambiar Contraseña</h1>
 
-    <form method="post">
+    <!-- Mostrar mensajes de éxito o error -->
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <!-- Mostrar errores del formulario -->
+    {% if form.errors %}
+        <div class="form-errors">
+            <ul>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="post" class="perfil-form">
         {% csrf_token %}
         {{ form.as_p }}
+
         <button type="submit" class="btn">Guardar cambios</button>
     </form>
 
-    <a href="{% url 'perfil' %}" class="btn" style="background-color:#888">Volver</a>
+    <a href="{% url 'perfil' %}" class="btn" style="background-color:#777;">
+        Volver
+    </a>
 </div>
 {% endblock %}

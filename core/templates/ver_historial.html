@@ -1,13 +1,16 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Historial - Inacook{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4">Historial de modificaciones</h1>
+<div class="container historial-container">
+
+    <h1>Historial de modificaciones</h1>
 
     {% if historial %}
-        <table class="table table-striped table-bordered">
-            <thead class="table-light">
+        <table class="historial-tabla">
+            <thead>
                 <tr>
                     <th>Fecha de modificación</th>
                     <th>Usuario</th>
@@ -15,21 +18,40 @@
                     <th>Cambio realizado</th>
                 </tr>
             </thead>
+
             <tbody>
                 {% for h in historial %}
                     <tr>
                         <td>{{ h.Fecha_Modificacion|date:"d/m/Y H:i" }}</td>
-                        <td>{{ h.Usuario }}</td>
-                        <td>{{ h.Receta }}</td>
-                        <td>{{ h.Cambio_Realizado }}</td>
+
+                        <td>
+                            {% if h.Usuario %}
+                                {{ h.Usuario.user.username }}
+                            {% else %}
+                                Desconocido
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if h.Receta %}
+                                {{ h.Receta.Nombre_Receta }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+<td>{{ h.Cambio_Realizado }}</td>
+
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
+
     {% else %}
-        <div class="alert alert-info">
+        <p class="mensaje-vacio">
             No hay registros en el historial todavía.
-        </div>
+        </p>
     {% endif %}
 </div>
 {% endblock %}
+

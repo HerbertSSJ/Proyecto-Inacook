@@ -1,204 +1,171 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Editar Receta - Inacook{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container editar-receta-container">
+
     <h1>Editar Receta: {{ receta.Nombre_Receta }}</h1>
 
     <form method="POST" enctype="multipart/form-data" id="receta-form">
         {% csrf_token %}
-        <h2>Datos de la receta</h2>
-        {{ receta_form.as_p }}
 
+        <!-- IMAGEN ACTUAL -->
+        {% if receta.imagen %}
+        <p><strong>Imagen actual:</strong></p>
+        <img src="{{ receta.imagen.url }}" 
+             style="width:300px; border-radius:10px; margin-bottom:15px;">
+        {% endif %}
+
+        <!-- FORM DJANGO -->
+        <h2>Datos de la receta</h2>
+        <div class="form-section">
+            {{ receta_form.as_p }}
+        </div>
+
+        <!-- INGREDIENTES -->
         <h2>Ingredientes</h2>
 
         <div class="ingrediente-form">
-            <select id="ingrediente-select">
+
+            <!-- Ingrediente -->
+            <label>Ingrediente</label>
+            <select id="ingrediente-select" class="form-select">
+                <option value="">Seleccionar</option>
                 {% for ingrediente in ingredientes %}
-                <option value="{{ ingrediente.IdIngrediente }}" 
-                        data-unidad="{{ ingrediente.UnidadMedicion_idUnidadMedicion.Abreviatura }}">
-                    {{ ingrediente.Nombre_Ingrediente }}
-                </option>
+                    <option value="{{ ingrediente.id }}"
+                        data-precio="{{ ingrediente.Costo_Unitario }}"
+                        data-calidad="{{ ingrediente.Calidad }}"
+                        data-abrev="{{ ingrediente.UnidadMedicion.Abreviatura }}">
+                        {{ ingrediente.Nombre_Ingrediente }}
+                    </option>
                 {% endfor %}
             </select>
 
-            <input type="number" step="0.01" id="cantidad-input" placeholder="Cantidad">
+            <!-- Cantidad -->
+            <label>Cantidad</label>
+            <input type="number" step="0.01" id="cantidad-input" class="form-control">
 
-            <!-- Select de unidad -->
-            <select id="unidad-select">
+            <!-- Unidad -->
+            <label>Unidad</label>
+            <select id="unidad-select" class="form-select">
                 {% for unidad in unidades %}
-                <option value="{{ unidad.Abreviatura }}">{{ unidad.Abreviatura }}</option>
+                    <option value="{{ unidad.Abreviatura }}">
+                        {{ unidad.Nombre_Unidad }} ({{ unidad.Abreviatura }})
+                    </option>
                 {% endfor %}
             </select>
 
-            <button type="button" id="add-ingrediente">Agregar</button>
+            <button type="button" id="add-ingrediente" class="btn btn-primary">Agregar</button>
         </div>
 
-        <table id="ingredientes-table" border="1" style="margin-top:10px;">
+        <!-- TABLA -->
+        <table id="ingredientes-table" class="ingredientes-tabla">
             <thead>
                 <tr>
                     <th>Ingrediente</th>
                     <th>Cantidad</th>
                     <th>Unidad</th>
+                    <th>Precio</th>
+                    <th>Calidad</th>
                     <th>Acción</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
 
-        <input type="hidden" name="ingredientes_json" id="ingredientes-json">
-        <br>
-        <button type="submit">Guardar cambios</button>
-    </form>
-        <a href="{% url 'ver_recetas' %}" class="btn">Cancelar</a>
+        <!-- JSON -->
+        <input type="hidden" id="ingredientes-json" name="ingredientes_json">
+
+        <button class="btn btn-success mt-3">Guardar Cambios</button>
+        <a href="{% url 'ver_recetas' %}" class="btn btn-secondary mt-3">Cancelar</a>
     </form>
 </div>
 
 <script>
-const selectIngrediente = document.getElementById('ingrediente-select');
-const cantidadInput = document.getElementById('cantidad-input');
-const unidadSelect = document.getElementById('unidad-select');
-const addBtn = document.getElementById('add-ingrediente');
-const tableBody = document.querySelector('#ingredientes-table tbody');
-const ingredientesJson = document.getElementById('ingredientes-json');
-
-// todos los ingredientes con su unidad por defecto
-const ingredientesData = {};
-{% for ingrediente in ingredientes %}
-ingredientesData["{{ ingrediente.IdIngrediente }}"] = {
-    nombre: "{{ ingrediente.Nombre_Ingrediente }}",
-    unidad: "{{ ingrediente.UnidadMedicion_idUnidadMedicion.Abreviatura }}"
+// MAPEO INGREDIENTES
+const ingredientesBD = {
+    {% for ing in ingredientes %}
+    "{{ ing.id }}": {
+        nombre: "{{ ing.Nombre_Ingrediente }}",
+        precio: "{{ ing.Costo_Unitario }}",
+        calidad: "{{ ing.Calidad }}",
+        unidad: "{{ ing.UnidadMedicion.Abreviatura }}"
+    },
+    {% endfor %}
 };
-{% endfor %}
 
-// Lista de todas las unidades disponibles
-const unidadesData = [
-    {% for unidad in unidades %}
-    "{{ unidad.Abreviatura }}",
+// INGREDIENTES EXISTENTES EN BD
+let ingredientesLista = [
+    {% for ri in receta_ingredientes %}
+    {
+        id: "{{ ri.Ingrediente.id }}",
+        nombre: "{{ ri.Ingrediente.Nombre_Ingrediente }}",
+        cantidad: "{{ ri.Cantidad }}",
+        unidad: "{{ ri.Ingrediente.UnidadMedicion.Abreviatura }}",
+        precio: "{{ ri.Ingrediente.Costo_Unitario }}",
+        calidad: "{{ ri.Ingrediente.Calidad }}"
+    },
     {% endfor %}
 ];
 
-// Actualizar unidad
-function actualizarUnidad() {
-    const unidadDefault = selectIngrediente.selectedOptions[0].dataset.unidad || '';
-    unidadSelect.value = unidadDefault;
-}
-selectIngrediente.addEventListener('change', actualizarUnidad);
-actualizarUnidad();
 
-// Lista interna de ingredientes
-let ingredientesLista = [];
+const tablaBody = document.querySelector("#ingredientes-table tbody");
+const ingredientesJson = document.getElementById("ingredientes-json");
 
-// Cargar ingredientes existentes
-{% for ri in receta_ingredientes %}
-ingredientesLista.push({
-    id: "{{ ri.Ingrediente_IdIngrediente.IdIngrediente }}",
-    cantidad: {{ ri.Cantidad }},
-    unidad: "{{ ri.Ingrediente_IdIngrediente.UnidadMedicion_idUnidadMedicion.Abreviatura }}"
-});
-{% endfor %}
+// RENDER TABLA
+function renderTabla() {
+    tablaBody.innerHTML = "";
 
-
-function renderizarTabla() {
-    tableBody.innerHTML = '';
-    ingredientesLista.forEach((ing, idx) => {
-        const row = document.createElement('tr');
-
-        // Select de ingrediente
-        let selectHtml = `<select data-idx="${idx}" class="select-ingrediente">`;
-        for (const id in ingredientesData) {
-            const selected = id == ing.id ? 'selected' : '';
-            selectHtml += `<option value="${id}" ${selected}>${ingredientesData[id].nombre}</option>`;
-        }
-        selectHtml += '</select>';
-
-        // Select de unidad
-        let selectUnidadHtml = `<select data-idx="${idx}" class="select-unidad">`;
-        unidadesData.forEach(u => {
-            const selected = u === ing.unidad ? 'selected' : '';
-            selectUnidadHtml += `<option value="${u}" ${selected}>${u}</option>`;
-        });
-        selectUnidadHtml += '</select>';
-
-        row.innerHTML = `
-            <td>${selectHtml}</td>
-            <td><input type="number" step="0.01" value="${ing.cantidad}" data-idx="${idx}" class="cantidad-edit" style="width:60px;"></td>
-            <td>${selectUnidadHtml}</td>
-            <td><button type="button" data-idx="${idx}">Eliminar</button></td>
+    ingredientesLista.forEach((ing, i) => {
+        tablaBody.innerHTML += `
+            <tr>
+                <td>${ing.nombre}</td>
+                <td>${ing.cantidad}</td>
+                <td>${ing.unidad}</td>
+                <td>$${ing.precio}</td>
+                <td>${ing.calidad}</td>
+                <td><button class="btn btn-danger eliminar" data-i="${i}">Eliminar</button></td>
+            </tr>
         `;
-
-        tableBody.appendChild(row);
-
-        // Cambiar cantidad
-        row.querySelector('.cantidad-edit').addEventListener('change', e => {
-            const index = e.target.dataset.idx;
-            const value = parseFloat(e.target.value);
-            if (!isNaN(value) && value > 0) {
-                ingredientesLista[index].cantidad = value;
-            } else {
-                e.target.value = ingredientesLista[index].cantidad;
-                alert("Cantidad inválida");
-            }
-            actualizarJSON();
-        });
-
-        // Cambiar ingrediente
-        row.querySelector('.select-ingrediente').addEventListener('change', e => {
-            const index = e.target.dataset.idx;
-            const nuevoId = e.target.value;
-            ingredientesLista[index].id = nuevoId;
-            // Actualizar unidad solo si es la unidad anterior del ingrediente
-            if (!ingredientesLista[index].unidad || ingredientesLista[index].unidad === ing.unidad) {
-                ingredientesLista[index].unidad = ingredientesData[nuevoId].unidad;
-                row.querySelector('.select-unidad').value = ingredientesData[nuevoId].unidad;
-            }
-            actualizarJSON();
-        });
-
-        // Cambiar unidad
-        row.querySelector('.select-unidad').addEventListener('change', e => {
-            const index = e.target.dataset.idx;
-            ingredientesLista[index].unidad = e.target.value;
-            actualizarJSON();
-        });
-
-        // Eliminar ingrediente
-        row.querySelector('button').addEventListener('click', e => {
-            const index = e.target.dataset.idx;
-            ingredientesLista.splice(index, 1);
-            renderizarTabla();
-        });
     });
 
-    actualizarJSON();
-}
+    document.querySelectorAll(".eliminar").forEach(btn => {
+        btn.onclick = e => {
+            ingredientesLista.splice(e.target.dataset.i, 1);
+            renderTabla();
+        };
+    });
 
-// Actualizar
-function actualizarJSON() {
     ingredientesJson.value = JSON.stringify(ingredientesLista);
 }
 
-// Agregar ingrediente nuevo
-addBtn.addEventListener('click', () => {
-    const id = selectIngrediente.value;
-    const cantidad = parseFloat(cantidadInput.value);
-    const unidad = unidadSelect.value;
+// AGREGAR ING
+document.getElementById("add-ingrediente").onclick = () => {
+    const id = document.getElementById("ingrediente-select").value;
+    const cantidad = document.getElementById("cantidad-input").value;
+    const unidad = document.getElementById("unidad-select").value;
 
-    if (!id) return alert("Selecciona un ingrediente válido.");
-    if (!cantidad || cantidad <= 0) return alert("Ingresa una cantidad válida.");
+    if (!id) return alert("Debes seleccionar un ingrediente.");
+    if (!cantidad || cantidad <= 0) return alert("Cantidad inválida");
 
-    if (ingredientesLista.find(ing => ing.id === id)) {
-        alert("Ingrediente ya agregado, modifica la cantidad o unidad en la tabla.");
-        return;
-    }
+    const d = ingredientesBD[id];
 
-    ingredientesLista.push({id, cantidad, unidad});
-    renderizarTabla();
-    cantidadInput.value = '';
-});
+    ingredientesLista.push({
+        id,
+        nombre: d.nombre,
+        cantidad,
+        unidad,
+        precio: d.precio,
+        calidad: d.calidad
+    });
 
-// Inicializar tabla
-renderizarTabla();
+    renderTabla();
+};
+
+// Render inicial
+renderTabla();
 </script>
 
 {% endblock %}

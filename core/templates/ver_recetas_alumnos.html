@@ -1,59 +1,104 @@
 {% extends "base.html" %}
-{% block title %}Recetas de Alumnos{% endblock %}
+{% load static %}
+
+{% block title %}Recetas de Alumnos - Inacook{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4">Recetas Subidas por Alumnos</h1>
+<div class="container recetas-alumnos-container">
 
+    <h1>Recetas de Alumnos 👨‍🏫</h1>
+
+    <!--  Filtros -->
+    <div class="card-filtros">
+        <form method="GET" class="form-filtros">
+
+            <div class="filtro-item">
+                <label>Buscar</label>
+                <input type="text" name="buscar" value="{{ request.GET.buscar }}" placeholder="Ej: Pastel, Ensalada...">
+            </div>
+
+            <div class="filtro-item">
+                <label>Categoría</label>
+                <select name="categoria">
+                    <option value="">Todas</option>
+                    {% for categoria in categorias %}
+                    <option value="{{ categoria }}" {% if request.GET.categoria == categoria %}selected{% endif %}>
+                        {{ categoria }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filtro-item">
+                <label>Letra inicial</label>
+                <select name="letra">
+                    <option value="">Todas</option>
+                    {% for letra in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" %}
+                    <option value="{{ letra }}" {% if request.GET.letra == letra %}selected{% endif %}>
+                        {{ letra }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+        </form>
+    </div>
+
+    <!-- Tabla -->
     {% if recetas_data %}
-        <div class="recetas-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-            {% for receta_data in recetas_data %}
-                {% with receta=receta_data.receta ingredientes=receta_data.ingredientes precio=receta_data.precio usuario=receta_data.usuario %}
-                <div class="receta-card" style="border: 1px solid #ddd; border-radius: 10px; padding: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-                    
-                    {% if receta.Imagen %}
-                        <img src="{{ receta.Imagen.url }}" alt="{{ receta.Nombre_Receta }}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
+    <table class="tabla-recetas">
+        <thead>
+            <tr>
+                <th>Imagen</th>
+                <th>Nombre</th>
+                <th>Alumno</th>
+                <th>Categoría</th>
+                <th>Tiempo</th>
+                <th>Precio</th>
+                <th>Comprobante</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for data in recetas_data %}
+            {% with receta=data.receta precio=data.precio usuario=data.usuario %}
+            <tr>
+
+                <td style="text-align:center;">
+                    {% if receta.imagen %}
+                        <img src="{{ receta.imagen.url }}" class="tabla-img">
                     {% else %}
-                        <div style="width: 100%; height: 200px; background-color: #f2f2f2; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
-                            <span style="color: #aaa;">Sin imagen</span>
-                        </div>
+                        <span class="no-image">Sin imagen</span>
                     {% endif %}
+                </td>
 
-                    <h2>{{ receta.Nombre_Receta }}</h2>
-                    <p><strong>Alumno:</strong> {{ usuario }}</p>
-                    <p><strong>Categoría:</strong> {{ receta.Categoria }}</p>
-                    <p><strong>Aporte calórico:</strong> {{ receta.Aporte_Calorico }} kcal</p>
-                    <p><strong>Tiempo de preparación:</strong> {{ receta.Tiempo_Preparacion }}</p>
+                <td>{{ receta.Nombre_Receta }}</td>
+                <td>{{ usuario }}</td>
+                <td>{{ receta.Categoria }}</td>
+                <td>{{ receta.Tiempo_Preparacion }}</td>
 
-                    {% if ingredientes %}
-                        <h3>Ingredientes:</h3>
-                        <ul>
-                            {% for ri in ingredientes %}
-                                <li>
-                                    {{ ri.Cantidad }} 
-                                    {{ ri.Unidad|default:"—" }} de 
-                                    {{ ri.Ingrediente_idIngrediente }}
-                                </li>
-                            {% endfor %}
-                        </ul>
+                <td>
+                    {% if precio != "No calculado" %}
+                        ${{ precio }}
                     {% else %}
-                        <p>No hay ingredientes agregados.</p>
+                        No calculado
                     {% endif %}
+                </td>
 
-                    <p><strong>Precio aproximado:</strong> ${{ precio }}</p>
+                <td>
+                    <a href="{% url 'comprobante_receta' receta.id %}" class="btn btn-secondary">Ver</a>
+                </td>
 
-                    <a href="{% url 'comprobante_receta' receta.idReceta %}" class="btn btn-primary" target="_blank">
-                        🧾 Ver Comprobante
-                    </a>
+            </tr>
+            {% endwith %}
+        {% endfor %}
+        </tbody>
+    </table>
 
-                </div>
-                {% endwith %}
-            {% endfor %}
-        </div>
     {% else %}
-        <div class="alert alert-info">
-            No hay recetas subidas por los alumnos todavía.
-        </div>
+    <p class="mensaje-vacio">No hay recetas de alumnos registradas.</p>
     {% endif %}
+
 </div>
 {% endblock %}

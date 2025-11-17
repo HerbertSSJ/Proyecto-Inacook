@@ -1,31 +1,62 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Ingredientes{% endblock %}
+{% block title %}Ingredientes - Inacook{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>Ingredientes agregados</h1>
+<div class="container ingredientes-container">
+
+    <h1>🥕 Ingredientes Registrados</h1>
+
+    <!-- BOTÓN CON ESPACIADO CORREGIDO -->
+    <a href="{% url 'crear_ingrediente' %}" 
+       class="btn btn-primary"
+       style="background-color:#28a745; border-color:#28a745; margin-bottom:25px; display:inline-block;">
+        ➕ Nuevo Ingrediente
+    </a>
+
     {% if ingredientes %}
-        <table style="width:100%; border-collapse: collapse;">
-            <thead>
-                <tr>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Nombre</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Costo Unitario</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Unidad de Medición</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for ing in ingredientes %}
-                <tr>
-                    <td style="border: 1px solid #ddd; padding: 8px;">{{ ing.Nombre_Ingrediente }}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">${{ ing.Costo_Unitario|floatformat:2 }}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">{{ ing.UnidadMedicion_idUnidadMedicion.Abreviatura }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <table class="tabla-ingredientes">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Calidad</th>
+                <th>Costo Unitario</th>
+                <th>Unidad</th>
+                <th style="text-align:center;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ing in ingredientes %}
+            <tr>
+                <td>{{ ing.Nombre_Ingrediente }}</td>
+                <td>{{ ing.Calidad }}</td>
+                <td>${{ ing.Costo_Unitario }}</td>
+                <td>{{ ing.UnidadMedicion.Nombre_Unidad }} ({{ ing.UnidadMedicion.Abreviatura }})</td>
+
+                <td style="text-align:center;">
+                    <!-- Editar -->
+                    <a href="{% url 'editar_ingrediente' ing.id %}"
+                       class="btn btn-primary"
+                       style="background-color:#007bff; border-color:#007bff;">
+                        ✏ Editar
+                    </a>
+
+                    <!-- Eliminar -->
+                    <a href="{% url 'eliminar_ingrediente' ing.id %}"
+                       class="btn btn-secondary"
+                       style="background-color:#dc3545; border-color:#dc3545; color:white;">
+                        🗑 Eliminar
+                    </a>
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
     {% else %}
-        <p>No hay ingredientes agregados.</p>
+        <p class="sin-datos">No hay ingredientes agregados.</p>
     {% endif %}
 </div>
 {% endblock %}

@@ -1,583 +1,701 @@
-from django.shortcuts import get_object_or_404, render, redirect
-from django.http import HttpResponse
-from django.http import HttpResponseForbidden
-from django.contrib import messages
-from django.contrib.auth.models import User
-from django.contrib import messages
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import get_user_model
-from django.conf import settings
-from .models import Usuario, Rol, Historial, Comprobante, RecetaIngrediente, Receta, Ingrediente, UnidadMedicion
-from .forms import RecetaForm, RecetaIngredienteForm, UnidadMedicionForm, IngredienteForm
 from decimal import Decimal
-from django.shortcuts import render, redirect
+import json
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
-from django.conf import settings
-from .models import Usuario, Rol
-import json
-from django.contrib.auth.views import PasswordChangeView
-from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.shortcuts import render, redirect
-from .models import Rol
+from django.contrib.auth.models import User
 from django.contrib.auth.views import PasswordChangeView
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
 
-Usuario = get_user_model()
+from .models import (
+    Usuario, Rol, Receta, Ingrediente,
+    UnidadMedicion, RecetaIngrediente,
+    Comprobante, Historial
+)
+from .forms import RecetaForm, IngredienteForm
 
-# LOGIN
+
+# ============================================================
+#   HELPERS
+# ============================================================
+
+def es_profesor(user):
+    """Retorna True si el usuario tiene rol 'Profesor'."""
+    if hasattr(user, "usuario") and user.usuario.rol:
+        return user.usuario.rol.NombreRol.lower() == "profesor"
+    return False
+
+
+def cargar_json_seguro(data):
+    try:
+        return json.loads(data)
+    except Exception:
+        return []
+
+
+def procesar_ingredientes(receta, ingredientes_json):
+  
+    costo_total = Decimal("0")
+
+    for ing in ingredientes_json:
+        if not ing.get("id") or not ing.get("cantidad"):
+            continue
+
+        # ---------- FIX PARA CANTIDADES CON COMA ----------
+        cantidad_str = str(ing["cantidad"]).replace(",", ".").strip()
+
+        try:
+            cantidad = Decimal(cantidad_str)
+        except:
+            cantidad = Decimal("0")
+
+        # Obtener ingrediente
+        try:
+            ingrediente = Ingrediente.objects.get(id=int(ing["id"]))
+        except Ingrediente.DoesNotExist:
+            continue
+
+        precio_unitario = Decimal(str(ingrediente.Costo_Unitario))
+
+        # Guardar relación N-M
+        RecetaIngrediente.objects.create(
+            Receta=receta,
+            Ingrediente=ingrediente,
+            Cantidad=cantidad
+        )
+
+        # Acumular costo
+        costo_total += cantidad * precio_unitario
+
+    return costo_total
+
+
+
+# ============================================================
+#   LOGIN
+# ============================================================
+
 def home(request):
     if request.method == "POST":
-        nombre = request.POST.get("nombre")
-        contraseña = request.POST.get("contraseña")
+        nombre = request.POST.get("nombre", "").strip()
+        contraseña = request.POST.get("contraseña", "").strip()
 
         user = authenticate(request, username=nombre, password=contraseña)
-        if user is not None:
+
+        if user:
             login(request, user)
-            return redirect('dashboard')
+            return redirect("dashboard")
         else:
-            messages.error(request, "Usuario o contraseña incorrectos")
-            return redirect('home')
+            messages.error(request, "Usuario o contraseña incorrectos.")
+            return redirect("home")
 
-    return render(request, 'login.html')
+    return render(request, "login.html")
 
+
+# ============================================================
+#   REGISTRO
+# ============================================================
 
 def register(request):
     if request.method == "POST":
-        nombre = request.POST.get("nombre")
-        correo = request.POST.get("correo")
-        contraseña = request.POST.get("contraseña")
+        nombre = request.POST.get("nombre", "").strip()
+        correo = request.POST.get("correo", "").strip()
+        contraseña = request.POST.get("contraseña", "")
         rol_id = request.POST.get("rol")
 
-        # Validación de campos
-        if not nombre or not correo or not contraseña or not rol_id:
-            messages.error(request, "Todos los campos son obligatorios")
-            return redirect('register')
+        # Validaciones
+        if not all([nombre, correo, contraseña, rol_id]):
+            messages.error(request, "Todos los campos son obligatorios.")
+            return redirect("register")
 
-        # Verificar si ya existe el usuario
-        if Usuario.objects.filter(username=nombre).exists():
-            messages.error(request, "Nombre de usuario ya existe")
-            return redirect('register')
-        if Usuario.objects.filter(email=correo).exists():
-            messages.error(request, "Correo ya registrado")
-            return redirect('register')
+        if User.objects.filter(username=nombre).exists():
+            messages.error(request, "El nombre de usuario ya está registrado.")
+            return redirect("register")
 
-        # Obtener rol
-        try:
-            rol = Rol.objects.get(id=rol_id)
-        except Rol.DoesNotExist:
-            messages.error(request, "Rol seleccionado no existe")
-            return redirect('register')
+        if User.objects.filter(email=correo).exists():
+            messages.error(request, "El correo ya está registrado.")
+            return redirect("register")
 
-        # Crear usuario
-        user = Usuario.objects.create_user(
+        # Crear usuario Django
+        user = User.objects.create_user(
             username=nombre,
             email=correo,
-            password=contraseña,
-            rol=rol  
+            password=contraseña
         )
 
-        messages.success(request, "Usuario creado exitosamente")
-        return redirect('home')
+        rol = Rol.objects.get(id=rol_id)
 
-    # GET → mostrar formulario
+        # Crear perfil
+        Usuario.objects.create(
+            user=user,
+            rol=rol
+        )
+
+        messages.success(request, "Cuenta creada exitosamente.")
+        return redirect("home")
+
     roles = Rol.objects.all()
-    return render(request, 'register.html', {'roles': roles})
+    return render(request, "register.html", {"roles": roles})
+
+
+# ============================================================
+#   DASHBOARD
+# ============================================================
 
 @login_required
 def dashboard(request):
-    usuario = request.user  # request.user ya es un Usuario
+    perfil = request.user.usuario
     return render(request, "dashboard.html", {
-        "nombre": usuario.username,  # o usuario.first_name si quieres usar nombre real
-        "rol": usuario.rol  
-    })
-
-@login_required
-def subir_receta(request):
-    ingredientes = Ingrediente.objects.all()
-
-    if request.method == "POST":
-        receta_form = RecetaForm(request.POST, request.FILES)
-
-        if receta_form.is_valid():
-            receta = receta_form.save(commit=False)
-            # receta.Usuario_IdUsuario = str(request.user)  <-- eliminado, no existe
-            receta.save()
-
-            # Procesar ingredientes
-            ingredientes_json = request.POST.get('ingredientes_json', '[]')
-            try:
-                ingredientes_data = json.loads(ingredientes_json)
-            except json.JSONDecodeError:
-                ingredientes_data = []
-
-            costo_total = Decimal(0)
-
-            for ing in ingredientes_data:
-                if not ing.get('id') or not ing.get('cantidad'):
-                    continue
-
-                ingrediente = Ingrediente.objects.get(idIngrediente=int(ing['id']))
-                cantidad = Decimal(ing['cantidad'])
-                unidad = ing.get('unidad', '')
-                precio_unitario = Decimal(ing.get('precio', 0))
-                calidad = ing.get('calidad', '')
-
-                # Guardar ingrediente en la receta
-                RecetaIngrediente.objects.create(
-                    Receta_idReceta=receta.Nombre_Receta,
-                    Ingrediente_idIngrediente=ingrediente.Nombre_Ingrediente,
-                    Cantidad=cantidad
-                )
-
-                # Normalizar cantidad según unidad
-                factor_conversion = {
-                    'g': Decimal('0.001'),  # g → kg
-                    'kg': Decimal('1'),
-                    'ml': Decimal('0.001'), # ml → l
-                    'l': Decimal('1')
-                }
-                cantidad_normalizada = cantidad * factor_conversion.get(unidad, 1)
-                costo_total += precio_unitario * cantidad_normalizada
-
-            # Calcular precio final
-            factor_multiplicacion = Decimal(1.3)
-            iva = Decimal(0.19)
-            precio_bruto = costo_total * factor_multiplicacion * (1 + iva)
-
-            # Guardar comprobante
-            Comprobante.objects.create(
-                Receta=receta.Nombre_Receta,
-                Costo_Total=int(costo_total),
-                Factor_Multiplicacion=factor_multiplicacion,
-                Iva=iva,
-                Precio_Bruto=int(precio_bruto)
-            )
-
-            # Guardar historial
-            Historial.objects.create(
-                Usuario=str(request.user),          
-                Receta=receta.Nombre_Receta,        
-                Cambio_Realizado=f"Receta '{receta.Nombre_Receta}' creada."
-            )
-
-            messages.success(request, "Receta subida exitosamente.")
-            return redirect("ver_recetas")
-        else:
-            messages.error(request, "Corrige los errores en el formulario.")
-    else:
-        receta_form = RecetaForm()
-
-    return render(request, "subir_receta.html", {
-        "receta_form": receta_form,
-        "ingredientes": ingredientes
+        "nombre": request.user.username,
+        "rol": perfil.rol.NombreRol if perfil.rol else "Sin rol"
     })
 
 
-# views.py
-@login_required
-def ver_recetas(request):
-    usuario = str(request.user)
-    # Obtenemos los nombres de recetas que este usuario subió según historial
-    recetas_nombres = Historial.objects.filter(Usuario=usuario).values_list('Receta', flat=True).distinct()
-
-    recetas = Receta.objects.filter(Nombre_Receta__in=recetas_nombres)
-
-    recetas_data = []
-    for receta in recetas:
-        ingredientes = RecetaIngrediente.objects.filter(Receta_idReceta=receta.Nombre_Receta)
-
-        ingredientes_info = []
-        for ri in ingredientes:
-            try:
-                ingrediente = Ingrediente.objects.get(Nombre_Ingrediente=ri.Ingrediente_idIngrediente)
-                ingredientes_info.append({
-                    "Cantidad": ri.Cantidad,
-                    "Nombre": ingrediente.Nombre_Ingrediente,
-                    "Unidad": ingrediente.UnidadMedicion_idUnidadMedicion,
-                    "Precio": ingrediente.Costo_Unitario,
-                    "Calidad": ingrediente.Calidad
-                })
-            except Ingrediente.DoesNotExist:
-                ingredientes_info.append({
-                    "Cantidad": ri.Cantidad,
-                    "Nombre": ri.Ingrediente_idIngrediente,
-                    "Unidad": "N/A",
-                    "Precio": 0,
-                    "Calidad": "Desconocida"
-                })
-
-        try:
-            comprobante = Comprobante.objects.get(Receta=receta.Nombre_Receta)
-            precio = comprobante.Precio_Bruto
-        except Comprobante.DoesNotExist:
-            precio = "No calculado"
-
-        recetas_data.append({
-            "receta": receta,
-            "ingredientes": ingredientes_info,
-            "precio": precio,
-        })
-
-    return render(request, "ver_recetas.html", {"recetas_data": recetas_data})
-
-
-@login_required
-def editar_receta(request, idReceta):
-    # Obtener la receta
-    receta = get_object_or_404(Receta, pk=idReceta)
-
-    # Solo el dueño puede editar
-    if receta.Usuario_IdUsuario != request.user:
-        return HttpResponseForbidden("No tienes permiso para editar esta receta.")
-
-    ingredientes = Ingrediente.objects.all()  # todos los ingredientes posibles
-    receta_ingredientes = receta.receta_ingredientes.all()
-    unidades = UnidadMedicion.objects.all()  # todas las unidades disponibles
-
-    if request.method == "POST":
-        receta_form = RecetaForm(request.POST, request.FILES, instance=receta)
-
-        if receta_form.is_valid():
-            receta_form.save()
-
-            # Procesar ingredientes
-            ingredientes_json = request.POST.get('ingredientes_json', '[]')
-            try:
-                ingredientes_data = json.loads(ingredientes_json)
-            except json.JSONDecodeError:
-                ingredientes_data = []
-
-            # Borrar los ingredientes antiguos
-            receta.receta_ingredientes.all().delete()
-
-            costo_total = Decimal(0)
-
-            for ing in ingredientes_data:
-                if not ing.get('id') or not ing.get('cantidad') or not ing.get('unidad'):
-                    continue
-
-                ingrediente = Ingrediente.objects.get(IdIngrediente=int(ing['id']))
-                cantidad = Decimal(ing['cantidad'])
-
-                # Guardar ingrediente con unidad editable
-                RecetaIngrediente.objects.create(
-                    Receta_idReceta=receta,
-                    Ingrediente_IdIngrediente=ingrediente,
-                    Cantidad=cantidad
-                )
-
-                # Normalizar cantidad según unidad original del ingrediente
-                unidad_original = ingrediente.UnidadMedicion_idUnidadMedicion.Abreviatura
-                factor_conversion = {
-                    'g': Decimal('0.001'),  # g → kg
-                    'kg': Decimal('1'),
-                    'cda': Decimal('0.001'),
-                    'ml': Decimal('0.001'), # ml → l
-                    'l': Decimal('1')
-                }
-                cantidad_normalizada = cantidad * factor_conversion.get(unidad_original, 1)
-                costo_total += Decimal(ingrediente.Costo_Unitario) * cantidad_normalizada
-
-            # Actualizar comprobante
-            factor_multiplicacion = Decimal(1.3)
-            iva = Decimal(0.19)
-            precio_bruto = costo_total * factor_multiplicacion * (1 + iva)
-
-            comprobante, created = Comprobante.objects.get_or_create(Receta_idReceta=receta)
-            comprobante.Costo_Total = costo_total
-            comprobante.Factor_Multiplicacion = factor_multiplicacion
-            comprobante.Iva = iva
-            comprobante.Precio_Bruto = precio_bruto
-            comprobante.save()
-
-            # Registrar historial
-            Historial.objects.create(
-                Usuario_IdUsuario=request.user,
-                Receta_IdReceta=receta,
-                Cambio_Realizado=f"Receta '{receta.Nombre_Receta}' actualizada."
-            )
-
-            messages.success(request, "Receta actualizada exitosamente.")
-            return redirect("ver_recetas")
-        else:
-            messages.error(request, "Corrige los errores en el formulario.")
-    else:
-        receta_form = RecetaForm(instance=receta)
-
-    return render(request, "editar_receta.html", {
-        "receta": receta,
-        "receta_form": receta_form,
-        "ingredientes": ingredientes,
-        "receta_ingredientes": receta_ingredientes,
-        "unidades": unidades  # <-- PASAMOS LAS UNIDADES
-    })
-@login_required
-def borrar_receta(request, idReceta):
-    receta = get_object_or_404(Receta, pk=idReceta)
-    usuario_actual = str(request.user)
-
-    # Traer todas las relaciones receta-ingrediente
-    receta_ingredientes_raw = RecetaIngrediente.objects.filter(
-        Receta_idReceta=str(receta.idReceta)
-    )
-
-    ingredientes_detallados = []
-    for ri in receta_ingredientes_raw:
-        ingrediente = None
-        unidad = None
-
-        # Buscar ingrediente por nombre, ignorando mayúsculas/minúsculas
-        ingrediente = Ingrediente.objects.filter(
-            Nombre_Ingrediente__iexact=ri.Ingrediente_idIngrediente
-        ).first()
-
-        # Obtener unidad si el campo es numérico
-        if ingrediente:
-            if ingrediente.UnidadMedicion_idUnidadMedicion.isdigit():
-                unidad = UnidadMedicion.objects.filter(
-                    idUnidadMedicion=int(ingrediente.UnidadMedicion_idUnidadMedicion)
-                ).first()
-
-        # Agregar al listado de ingredientes
-        ingredientes_detallados.append({
-            "nombre": ingrediente.Nombre_Ingrediente if ingrediente else ri.Ingrediente_idIngrediente,
-            "cantidad": ri.Cantidad,
-            "unidad": unidad.Abreviatura if unidad else "—",
-            "precio": ingrediente.Costo_Unitario if ingrediente else "No encontrado"
-        })
-
-    # POST: confirmar borrado
-    if request.method == "POST":
-        nombre_receta = receta.Nombre_Receta
-
-        # Borrar relaciones e historial
-        RecetaIngrediente.objects.filter(Receta_idReceta=str(receta.idReceta)).delete()
-        Comprobante.objects.filter(Receta=nombre_receta).delete()
-
-        Historial.objects.create(
-            Usuario=usuario_actual,
-            Receta=nombre_receta,
-            Cambio_Realizado=f"La receta '{nombre_receta}' fue eliminada."
-        )
-
-        # Borrar receta principal
-        receta.delete()
-
-        messages.success(request, f"La receta '{nombre_receta}' fue eliminada correctamente.")
-        return redirect("ver_recetas")
-
-    # Contexto para el template
-    return render(request, "borrar_receta.html", {
-        "receta": receta,
-        "ingredientes": ingredientes_detallados,
-        "imagen": receta.Imagen.url if receta.Imagen else None,
-    })
-
-@login_required
-def comprobante_receta(request, idReceta):
-    # 1) Obtener la receta (por idReceta)
-    try:
-        receta = Receta.objects.get(idReceta=idReceta)
-    except Receta.DoesNotExist:
-        return render(request, 'error.html', {'mensaje': 'Receta no encontrada'})
-
-    # 2) Permisos: permitir al creador o a un profesor
-    usuario_actual = request.user
-    rol_actual = (getattr(usuario_actual, 'rol', '') or '').lower()
-
-    # Intentamos obtener el owner id guardado en la receta (si existe)
-    dueño_id = None
-    if hasattr(receta, 'Usuario_IdUsuario'):
-        try:
-            dueño_id = int(getattr(receta, 'Usuario_IdUsuario'))
-        except (TypeError, ValueError):
-            dueño_id = None
-
-    # Si no es profesor y no es el dueño -> denegar
-    if rol_actual != 'profesor' and dueño_id != usuario_actual.id:
-        return HttpResponseForbidden("No tienes permiso para ver este comprobante.")
-
-    # 3) Buscar comprobante: como en tu modelo Comprobante la columna es 'Receta' (char),
-    #   probamos varias estrategias para encontrar el comprobante correcto.
-    comprobante = None
-    # a) buscar por nombre de receta
-    comprobante = Comprobante.objects.filter(Receta=receta.Nombre_Receta).first()
-    # b) si no, buscar por id (string/int)
-    if not comprobante:
-        comprobante = Comprobante.objects.filter(Receta=str(receta.idReceta)).first()
-    # c) si no, buscar por contiene (por si guardaron "Receta 3" u otro formato)
-    if not comprobante:
-        comprobante = Comprobante.objects.filter(Receta__icontains=str(receta.idReceta)).first()
-
-    # 4) Traer ingredientes relacionados (RecetaIngrediente almacena Receta_idReceta como CharField)
-    posibles_ri = RecetaIngrediente.objects.filter(Receta_idReceta__in=[str(receta.idReceta), receta.Nombre_Receta])
-    # si no hay matches exactos, tomar todos los que tengan receta.nombre en el campo
-    if not posibles_ri.exists():
-        posibles_ri = RecetaIngrediente.objects.filter(Receta_idReceta__icontains=str(receta.idReceta))
-
-    ingredientes_list = []
-    for ri in posibles_ri:
-        # intentamos resolver el ingrediente real (si guardaron id o nombre)
-        ingrediente_obj = None
-        nombre_ingrediente = None
-        costo_unit = None
-
-        val_ing = ri.Ingrediente_idIngrediente
-        # si val_ing parece un número -> buscar por id
-        try:
-            ing_id = int(val_ing)
-            ingrediente_obj = Ingrediente.objects.filter(idIngrediente=ing_id).first()
-        except Exception:
-            ingrediente_obj = None
-
-        if ingrediente_obj:
-            nombre_ingrediente = ingrediente_obj.Nombre_Ingrediente
-            # Costo_Unitario es DecimalField en tu modelo Ingrediente
-            costo_unit = ingrediente_obj.Costo_Unitario
-            unidad = ingrediente_obj.UnidadMedicion_idUnidadMedicion
-        else:
-            # si no encontramos objeto, usamos el texto que esté en el campo
-            nombre_ingrediente = val_ing
-            unidad = getattr(ri, 'Unidad', None) or ''  # por si hay algo
-            costo_unit = None
-
-        # subtotal (si tenemos costo unitario)
-        subtotal = None
-        try:
-            cantidad = ri.Cantidad
-            if costo_unit is not None:
-                subtotal = cantidad * Decimal(costo_unit)
-        except Exception:
-            subtotal = None
-
-        ingredientes_list.append({
-            'raw': ri,
-            'nombre': nombre_ingrediente,
-            'cantidad': ri.Cantidad,
-            'unidad': unidad,
-            'costo_unit': costo_unit,
-            'subtotal': subtotal,
-        })
-
-    # 5) Render con context robusto
-    return render(request, 'comprobante_receta.html', {
-        'receta': receta,
-        'comprobante': comprobante,
-        'ingredientes': ingredientes_list,
-    })
+# ============================================================
+#   PERFIL
+# ============================================================
 
 @login_required
 def perfil_view(request):
-    usuario = request.user  # tu modelo Usuario personalizado
+    usuario = request.user
 
     if request.method == "POST":
-        # Solo actualizar nombre y correo
-        usuario.username = request.POST.get("username")
-        usuario.email = request.POST.get("email")
+        usuario.username = request.POST.get("username", usuario.username)
+        usuario.email = request.POST.get("email", usuario.email)
         usuario.save()
+
         messages.success(request, "Perfil actualizado correctamente.")
-        return redirect('perfil')
+        return redirect("perfil")
 
-    return render(request, 'perfil.html', {
-        'usuario': usuario,
-        'rol': usuario.rol  # solo para mostrarlo como texto
-    })
-
-def ver_historial(request):
-    historial = Historial.objects.all().order_by('-Fecha_Modificacion')
-    return render(request, 'ver_historial.html', {'historial': historial})
+    return render(request, "perfil.html", {"usuario": usuario})
 
 
 class CambiarContraseñaView(PasswordChangeView):
-    template_name = 'cambiar_contraseña.html'
-    success_url = reverse_lazy('perfil')
+    template_name = "cambiar_contraseña.html"
+    success_url = reverse_lazy("perfil")
 
     def form_valid(self, form):
         messages.success(self.request, "Tu contraseña se cambió correctamente.")
         return super().form_valid(form)
 
 
-def calculadora_view(request):
-    return render(request, 'calculadora.html')
-
-def solo_profesor(user):
-    return user.is_authenticated and user.rol.lower() == "profesor"
+# ============================================================
+#   SUBIR RECETA
+# ============================================================
 
 @login_required
-def crear_ingrediente(request):
-    if not solo_profesor(request.user):
-        return HttpResponseForbidden("No tienes permiso para acceder aquí.")
+def subir_receta(request):
+    ingredientes = Ingrediente.objects.select_related("UnidadMedicion").all()
+    unidades = UnidadMedicion.objects.all()
 
     if request.method == "POST":
-        form = IngredienteForm(request.POST)
+        form = RecetaForm(request.POST, request.FILES)
+
         if form.is_valid():
-            form.save()
-            return redirect("dashboard")  # redirige al panel principal
+            receta = form.save(commit=False)
+            receta.Usuario = request.user.usuario
+            receta.save()
+
+            ingredientes_json = cargar_json_seguro(
+                request.POST.get("ingredientes_json", "[]")
+            )
+            costo_total = procesar_ingredientes(receta, ingredientes_json)
+
+            factor = Decimal("1.3")
+            iva = Decimal("0.19")
+            precio_bruto = costo_total * factor * (1 + iva)
+
+            Comprobante.objects.create(
+                Receta=receta,
+                Costo_Total=costo_total,
+                Factor_Multiplicacion=factor,
+                Iva=iva,
+                Precio_Bruto=precio_bruto
+            )
+
+            # 🔵 AGREGAR AL HISTORIAL
+            Historial.objects.create(
+                Usuario=request.user.usuario,
+                Receta=receta,
+                Cambio_Realizado=f"Receta creada: {receta.Nombre_Receta}"
+            )
+
+            messages.success(request, "Receta subida exitosamente.")
+            return redirect("ver_recetas")
+
+        messages.error(request, "Corrige los errores del formulario.")
     else:
-        form = IngredienteForm()
-    return render(request, "crear_ingrediente.html", {"form": form})
+        form = RecetaForm()
 
-def ver_ingredientes(request):
-    if not solo_profesor(request.user):
-        return HttpResponseForbidden("No tienes permiso para ver los ingredientes.")
+    return render(request, "subir_receta.html", {
+        "receta_form": form,
+        "ingredientes": ingredientes,
+        "unidades": unidades,
+    })
 
-    ingredientes = Ingrediente.objects.all()
-    unidades = {u.idUnidadMedicion: u for u in UnidadMedicion.objects.all()}
 
-    for ing in ingredientes:
-        id_unidad = ing.UnidadMedicion_idUnidadMedicion
-        ing.unidad_nombre = unidades.get(int(id_unidad)).Nombre_Unidad if id_unidad.isdigit() and int(id_unidad) in unidades else id_unidad
 
-    return render(request, "ver_ingredientes.html", {"ingredientes": ingredientes})
-
+# ============================================================
+#   VER RECETAS (ALUMNO)
+# ============================================================
 
 @login_required
-def crear_unidad_medicion(request):
-    if not solo_profesor(request.user):
-        return HttpResponseForbidden("No tienes permiso para acceder aquí.")
+def ver_recetas(request):
+    usuario = request.user.usuario
+    recetas = Receta.objects.filter(Usuario=usuario)
+    recetas_data = []
 
-    if request.method == "POST":
-        form = UnidadMedicionForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect("dashboard")
-    else:
-        form = UnidadMedicionForm()
-    return render(request, "crear_unidad_medicion.html", {"form": form})
+    for receta in recetas:
+        rels = RecetaIngrediente.objects.select_related(
+            "Ingrediente__UnidadMedicion"
+        ).filter(Receta=receta)
+
+        ingredientes_info = []
+        for ri in rels:
+            ingredientes_info.append({
+                "Cantidad": ri.Cantidad,
+                "Nombre": ri.Ingrediente.Nombre_Ingrediente,
+                "Unidad": f"{ri.Ingrediente.UnidadMedicion.Nombre_Unidad} ({ri.Ingrediente.UnidadMedicion.Abreviatura})",
+                "Precio": ri.Ingrediente.Costo_Unitario,
+                "Calidad": ri.Ingrediente.Calidad,
+                })
+
+        comprobante = Comprobante.objects.filter(Receta=receta).first()
+        precio = comprobante.Precio_Bruto if comprobante else "No calculado"
+
+        recetas_data.append({
+            "receta": receta,
+            "ingredientes": ingredientes_info,
+            "precio": precio
+        })
+
+    return render(request, "ver_recetas.html", {"recetas_data": recetas_data})
+
+
+# ============================================================
+#   VER RECETAS (PROFESOR)
+# ============================================================
 
 @login_required
 def ver_recetas_alumnos(request):
-    # Solo los profesores pueden acceder
-    if not solo_profesor(request.user):
-        return HttpResponseForbidden("No tienes permiso para ver esta página.")
+    if not es_profesor(request.user):
+        return redirect("dashboard")
 
-    # Traemos todas las recetas
-    recetas = Receta.objects.all()  # sin select_related ni prefetch_related
+   
+    # Captura de filtros
+    
+    buscar = request.GET.get("buscar", "").strip()
+    categoria_filtro = request.GET.get("categoria", "").strip()
+    letra_filtro = request.GET.get("letra", "").strip()
 
+   
+    # Trae todas las recetas
+
+    recetas = Receta.objects.select_related("Usuario__user").all()
+
+
+    # Aplicar filtros dinámicos
+
+    # Filtrar por texto (nombre receta)
+    if buscar:
+        recetas = recetas.filter(Nombre_Receta__icontains=buscar)
+
+    # Filtrar por categoría exacta
+    if categoria_filtro:
+        recetas = recetas.filter(Categoria=categoria_filtro)
+
+    # Filtrar por letra inicial del nombre
+    if letra_filtro:
+        recetas = recetas.filter(Nombre_Receta__istartswith=letra_filtro)
+
+   
+    # Lista de categorías únicas
+    
+    categorias = Receta.objects.values_list("Categoria", flat=True).distinct()
+
+    
+    # Armar los datos para el HTML
+   
     recetas_data = []
+
     for receta in recetas:
-        # Obtener ingredientes relacionados manualmente
-        ingredientes = RecetaIngrediente.objects.filter(Receta_idReceta=str(receta.idReceta))
 
-        # Obtener comprobante si existe
-        comprobante = Comprobante.objects.filter(Receta=receta.Nombre_Receta).first()
+        ingredientes = RecetaIngrediente.objects.select_related(
+            "Ingrediente__UnidadMedicion"
+        ).filter(Receta=receta)
+
+        comprobante = Comprobante.objects.filter(Receta=receta).first()
         precio = comprobante.Precio_Bruto if comprobante else "No calculado"
-
-        # Usuario asociado como texto
-        usuario_texto = getattr(receta, "Usuario", "Desconocido")  # si tienes un campo Usuario
 
         recetas_data.append({
             "receta": receta,
             "ingredientes": ingredientes,
             "precio": precio,
-            "usuario": usuario_texto
+            "usuario": receta.Usuario.user.username if receta.Usuario else "Desconocido"
         })
 
-    return render(request, "ver_recetas_alumnos.html", {"recetas_data": recetas_data})
+    return render(
+        request,
+        "ver_recetas_alumnos.html",
+        {
+            "recetas_data": recetas_data,
+            "categorias": categorias,
+        }
+    )
+
+
+# ============================================================
+#   BORRAR RECETA
+# ============================================================
+
+@login_required
+def borrar_receta(request, idReceta):
+    receta = get_object_or_404(Receta, pk=idReceta)
+
+    if receta.Usuario != request.user.usuario:
+        messages.error(request, "No puedes borrar esta receta.")
+        return redirect("ver_recetas")
+
+    #  AGREGAR AL HISTORIAL ANTES DE BORRAR
+    Historial.objects.create(
+        Usuario=request.user.usuario,
+        Receta=receta,
+        Cambio_Realizado=f"Receta eliminada: {receta.Nombre_Receta}"
+    )
+
+    receta.delete()
+    messages.success(request, "Receta eliminada correctamente.")
+    return redirect("ver_recetas")
+
+
+# ============================================================
+#   EDITAR RECETA (CON HISTORIAL REAL)
+# ============================================================
+
+@login_required
+def editar_receta(request, idReceta):
+    receta = get_object_or_404(Receta, pk=idReceta)
+
+    if receta.Usuario != request.user.usuario and not es_profesor(request.user):
+        messages.error(request, "No tienes permiso para editar esta receta.")
+        return redirect("ver_recetas")
+
+    ingredientes = Ingrediente.objects.select_related("UnidadMedicion").all()
+    unidades = UnidadMedicion.objects.all()
+    receta_ingredientes = RecetaIngrediente.objects.filter(Receta=receta)
+
+    # -------------------------------------------------------
+    # GUARDAR ESTADO ANTERIOR PARA COMPARAR
+    # -------------------------------------------------------
+    antes = {
+        "Nombre_Receta": receta.Nombre_Receta,
+        "Categoria": receta.Categoria,
+        "Aporte_Calorico": receta.Aporte_Calorico,
+        "Tiempo_Preparacion": receta.Tiempo_Preparacion,
+        "ingredientes": {
+            ri.Ingrediente.id: {
+                "nombre": ri.Ingrediente.Nombre_Ingrediente,
+                "cantidad": float(ri.Cantidad),
+                "unidad": ri.Ingrediente.UnidadMedicion.Abreviatura,
+            }
+            for ri in receta_ingredientes
+        }
+    }
+
+    # helper interno para normalizar cantidades "12,00" -> 12.0
+    def parse_cantidad(valor):
+        if valor is None or valor == "":
+            return None
+        valor_str = str(valor).replace(",", ".").strip()
+        try:
+            return float(valor_str)
+        except ValueError:
+            return None
+
+    if request.method == "POST":
+        form = RecetaForm(request.POST, request.FILES, instance=receta)
+
+        if form.is_valid():
+
+            # -------------------------------------------------------
+            # NOMBRE DUPLICADO PERO PERMITIDO
+            # -------------------------------------------------------
+            nuevo_nombre = form.cleaned_data["Nombre_Receta"].strip().title()
+            usuario = request.user.usuario
+
+            existe_otra = Receta.objects.filter(
+                Usuario=usuario,
+                Nombre_Receta=nuevo_nombre
+            ).exclude(pk=receta.pk)
+
+            if existe_otra.exists():
+                messages.warning(
+                    request,
+                    f"Ya tienes otra receta llamada '{nuevo_nombre}', "
+                    "pero puedes tener versiones distintas."
+                )
+
+            # Guardamos siempre la receta
+            receta_actualizada = form.save()
+
+            # -------------------------------------------------------
+            # PROCESAR INGREDIENTES NUEVOS
+            # -------------------------------------------------------
+            ingredientes_json = cargar_json_seguro(
+                request.POST.get("ingredientes_json", "[]")
+            )
+
+            RecetaIngrediente.objects.filter(Receta=receta).delete()
+            procesar_ingredientes(receta, ingredientes_json)
+
+            # -------------------------------------------------------
+            # GUARDAR ESTADO NUEVO PARA COMPARAR
+            # -------------------------------------------------------
+            despues_ing = {}
+            for ing in ingredientes_json:
+                ing_id = ing.get("id")
+                if not ing_id:
+                    continue
+
+                cantidad_norm = parse_cantidad(ing.get("cantidad"))
+                if cantidad_norm is None:
+                    continue
+
+                despues_ing[str(ing_id)] = {
+                    "nombre": ing.get("nombre", ""),
+                    "cantidad": cantidad_norm,
+                    "unidad": ing.get("unidad", "")
+                }
+
+            cambios = []
+
+            # -------------------------------------------------------
+            # CAMBIOS EN CAMPOS PRINCIPALES
+            # -------------------------------------------------------
+            if antes["Nombre_Receta"] != receta.Nombre_Receta:
+                cambios.append(
+                    f"Nombre: '{antes['Nombre_Receta']}' → '{receta.Nombre_Receta}'"
+                )
+
+            if antes["Categoria"] != receta.Categoria:
+                cambios.append(
+                    f"Categoría: '{antes['Categoria']}' → '{receta.Categoria}'"
+                )
+
+            if antes["Aporte_Calorico"] != receta.Aporte_Calorico:
+                cambios.append(
+                    f"Aporte calórico: {antes['Aporte_Calorico']} → {receta.Aporte_Calorico}"
+                )
+
+            if antes["Tiempo_Preparacion"] != receta.Tiempo_Preparacion:
+                cambios.append(
+                    f"Tiempo de preparación: '{antes['Tiempo_Preparacion']}' → '{receta.Tiempo_Preparacion}'"
+                )
+
+            # -------------------------------------------------------
+            # CAMBIOS EN INGREDIENTES
+            # -------------------------------------------------------
+            for ing_id, ing_data in antes["ingredientes"].items():
+                if str(ing_id) not in despues_ing:
+                    cambios.append(f"Ingrediente eliminado: {ing_data['nombre']}")
+
+            for ing_id, ing_data in despues_ing.items():
+                if int(ing_id) not in antes["ingredientes"]:
+                    cambios.append(
+                        f"Ingrediente agregado: {ing_data['nombre']} "
+                        f"({ing_data['cantidad']} {ing_data['unidad']})"
+                    )
+
+            for ing_id, ing_data in despues_ing.items():
+                if int(ing_id) in antes["ingredientes"]:
+                    antes_ing = antes["ingredientes"][int(ing_id)]
+
+                    if ing_data["cantidad"] != antes_ing["cantidad"]:
+                        cambios.append(
+                            f"Cantidad modificada ({ing_data['nombre']}): "
+                            f"{antes_ing['cantidad']} → {ing_data['cantidad']}"
+                        )
+
+                    if ing_data["unidad"] != antes_ing["unidad"]:
+                        cambios.append(
+                            f"Unidad modificada ({ing_data['nombre']}): "
+                            f"{antes_ing['unidad']} → {ing_data['unidad']}"
+                        )
+
+            # -------------------------------------------------------
+            # REGISTRAR HISTORIAL SOLO SI HUBO CAMBIOS
+            # -------------------------------------------------------
+            if cambios:
+                Historial.objects.create(
+                    Usuario=request.user.usuario,
+                    Receta=receta,
+                    Cambio_Realizado="; ".join(cambios)
+                )
+
+            messages.success(request, "Receta actualizada correctamente.")
+            return redirect("ver_recetas")
+
+        messages.error(request, "Corrige los errores del formulario.")
+    else:
+        form = RecetaForm(instance=receta)
+
+    return render(request, "editar_receta.html", {
+        "receta_form": form,
+        "receta": receta,
+        "ingredientes": ingredientes,
+        "unidades": unidades,
+        "receta_ingredientes": receta_ingredientes
+    })
+
+
+
+# ============================================================
+#   CREAR INGREDIENTE
+# ============================================================
+
+@login_required
+def crear_ingrediente(request):
+    if not es_profesor(request.user):
+        return redirect("dashboard")
+
+    if request.method == "POST":
+        form = IngredienteForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Ingrediente creado exitosamente.")
+            return redirect("ver_ingredientes")
+
+        messages.error(request, "Corrige los errores del formulario.")
+    else:
+        form = IngredienteForm()
+
+    return render(request, "crear_ingrediente.html", {"form": form})
+
+
+# ============================================================
+#   VER INGREDIENTES
+# ============================================================
+
+@login_required
+def ver_ingredientes(request):
+    if not es_profesor(request.user):
+        return redirect("dashboard")
+
+    ingredientes = Ingrediente.objects.select_related("UnidadMedicion").all()
+    return render(request, "ver_ingredientes.html", {"ingredientes": ingredientes})
+
+
+# ============================================================
+#   EDITAR INGREDIENTES
+# ============================================================
+
+@login_required
+def editar_ingrediente(request, id):
+    if not es_profesor(request.user):
+        return redirect("dashboard")
+
+    ingrediente = get_object_or_404(Ingrediente, id=id)
+
+    if request.method == "POST":
+        form = IngredienteForm(request.POST, instance=ingrediente)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Ingrediente actualizado correctamente.")
+            return redirect("ver_ingredientes")
+        else:
+            messages.error(request, "Corrige los errores del formulario.")
+    else:
+        form = IngredienteForm(instance=ingrediente)
+
+    return render(request, "editar_ingrediente.html", {"form": form, "ingrediente": ingrediente})
+
+# ============================================================
+#   ELIMINAR INGREDIENTES
+# ============================================================
+
+@login_required
+def eliminar_ingrediente(request, id):
+    if not es_profesor(request.user):
+        return redirect("dashboard")
+
+    ingrediente = get_object_or_404(Ingrediente, id=id)
+
+    if request.method == "POST":
+        ingrediente.delete()
+        messages.success(request, "Ingrediente eliminado correctamente.")
+        return redirect("ver_ingredientes")
+
+    return render(request, "eliminar_ingrediente.html", {"ingrediente": ingrediente})
+
+
+# ============================================================
+#   HISTORIAL
+# ============================================================
+
+@login_required
+def ver_historial(request):
+    historial = Historial.objects.filter(
+        Usuario=request.user.usuario
+    ).order_by("-Fecha_Modificacion")
+
+    return render(request, "ver_historial.html", {"historial": historial})
+
+
+# ============================================================
+#   COMPROBANTE DE RECETA
+# ============================================================
+
+@login_required
+def comprobante_receta(request, idReceta):
+    receta = get_object_or_404(Receta, pk=idReceta)
+
+    relaciones = RecetaIngrediente.objects.select_related(
+        "Ingrediente__UnidadMedicion"
+    ).filter(Receta=receta)
+
+    ingredientes_detalle = []
+    subtotal = Decimal("0")
+
+    for ri in relaciones:
+        precio_unitario = Decimal(ri.Ingrediente.Costo_Unitario)
+        sub = precio_unitario * ri.Cantidad
+        subtotal += sub
+
+        ingredientes_detalle.append({
+            "nombre": ri.Ingrediente.Nombre_Ingrediente,
+            "cantidad": ri.Cantidad,
+            "unidad": ri.Ingrediente.UnidadMedicion.Abreviatura,
+            "precio_unitario": precio_unitario,
+            "subtotal": sub,
+        })
+
+    comprobante = Comprobante.objects.filter(Receta=receta).first()
+
+    iva_monto = Decimal("0")
+    total_final = Decimal("0")
+
+    if comprobante:
+        iva_monto = subtotal * comprobante.Iva
+        total_final = subtotal * comprobante.Factor_Multiplicacion + iva_monto
+
+    return render(request, "comprobante_receta.html", {
+        "receta": receta,
+        "ingredientes_detalle": ingredientes_detalle,
+        "subtotal": subtotal,
+        "iva_monto": iva_monto,
+        "total_final": total_final,
+        "comprobante": comprobante,
+    })
+
+
+# ============================================================
+#   CALCULADORA
+# ============================================================
+
+@login_required
+def calculadora_view(request):
+    return render(request, "calculadora.html")

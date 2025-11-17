@@ -1,113 +1,128 @@
+from django.core.validators import MinValueValidator
+from django.contrib.auth.models import User
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-# -------------------- ROL --------------------
+
+
+# ============================================
+#                   ROL
+# ============================================
 class Rol(models.Model):
     NombreRol = models.CharField(max_length=45, unique=True)
 
     class Meta:
-        db_table = 'Rol'  # 👈 nombre exacto en la BD
+        db_table = "Rol"
 
     def __str__(self):
         return self.NombreRol
 
 
-# -------------------- USUARIO --------------------
-class Usuario(AbstractUser):
-    rol = models.CharField(max_length=45, db_column='Rol', blank=True, null=True, default="Sin rol")
+# ============================================
+#                 USUARIO
+# ============================================
+class Usuario(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    rol = models.ForeignKey("Rol", on_delete=models.SET_NULL, null=True)
 
     class Meta:
-        db_table = 'Usuario' 
+        db_table = "Usuario"
 
     def __str__(self):
-        return self.username
+        return self.user.username
 
 
-# -------------------- UNIDAD DE MEDICIÓN --------------------
+# ============================================
+#           UNIDAD DE MEDICIÓN
+# ============================================
 class UnidadMedicion(models.Model):
-    idUnidadMedicion = models.AutoField(primary_key=True, db_column='idUnidadMedicion')
-    Nombre_Unidad = models.CharField(max_length=100, default="Sin unidad", db_column='Nombre_Unidad')
-    Abreviatura = models.CharField(max_length=10, default="NA", db_column='Abreviatura')
+    Nombre_Unidad = models.CharField(max_length=100)
+    Abreviatura = models.CharField(max_length=15)
 
     class Meta:
-        db_table = 'UnidadMedicion'  # 👈 nombre exacto
+        db_table = "UnidadMedicion"
 
     def __str__(self):
-        return self.Abreviatura
+        return f"{self.Nombre_Unidad} ({self.Abreviatura})"
 
 
-# -------------------- INGREDIENTE --------------------
+
+# ============================================
+#                INGREDIENTE
+# ============================================
 class Ingrediente(models.Model):
-    idIngrediente = models.AutoField(primary_key=True, db_column='idIngrediente')
-    Nombre_Ingrediente = models.CharField(max_length=100, default="Ingrediente genérico", db_column='Nombre_Ingrediente')
-    Calidad = models.CharField(max_length=45, default="Normal", db_column='Calidad')
-    Costo_Unitario = models.DecimalField(max_digits=10, decimal_places=2, default=0, db_column='Costo_Unitario')
-    UnidadMedicion_idUnidadMedicion = models.CharField(max_length=100, default="Unidad", db_column='UnidadMedicion_idUnidadMedicion')
+    Nombre_Ingrediente = models.CharField(max_length=100)
+    Calidad = models.CharField(max_length=45)
+    Costo_Unitario = models.IntegerField(validators=[MinValueValidator(0)])
+    UnidadMedicion = models.ForeignKey(UnidadMedicion, on_delete=models.PROTECT)
 
     class Meta:
-        db_table = 'Ingrediente'  # 👈 nombre exacto
+        db_table = "Ingrediente"
 
     def __str__(self):
         return self.Nombre_Ingrediente
 
 
-# -------------------- RECETA --------------------
+# ============================================
+#                 RECETA
+# ============================================
 class Receta(models.Model):
-    idReceta = models.AutoField(primary_key=True, db_column='idReceta')
-    Nombre_Receta = models.CharField(max_length=100, default="Receta genérica", db_column='Nombre_Receta')
-    Categoria = models.CharField(max_length=45, default="Sin categoría", db_column='Categoria')
-    Aporte_Calorico = models.IntegerField(default=0, db_column='Aporte_Calorico')
-    Tiempo_Preparacion = models.CharField(max_length=45, default="0 min", db_column='Tiempo_Preparacion')
-    Procedimiento = models.TextField(default="Sin procedimiento", db_column='Procedimiento')
-    Imagen = models.ImageField(upload_to="recetas/", null=True, blank=True, db_column='Imagen')
+    Nombre_Receta = models.CharField(max_length=100)
+    Categoria = models.CharField(max_length=45)
+    Aporte_Calorico = models.IntegerField()
+    Tiempo_Preparacion = models.CharField(max_length=45)
+    imagen = models.ImageField(upload_to='recetas/', null=True, blank=True)
+    Usuario = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True)
 
     class Meta:
-        db_table = 'Receta'  # 👈 nombre exacto
+        db_table = "Receta"
 
     def __str__(self):
         return self.Nombre_Receta
 
 
-# -------------------- RELACIÓN RECETA - INGREDIENTE --------------------
+# ============================================
+#           RECETA - INGREDIENTE (N-M)
+# ============================================
 class RecetaIngrediente(models.Model):
-    idRecetaIngrediente = models.AutoField(primary_key=True, db_column='idRecetaIngrediente')
-    Receta_idReceta = models.CharField(max_length=100, default="Receta genérica", db_column='Receta_idReceta')
-    Ingrediente_idIngrediente = models.CharField(max_length=100, default="Ingrediente genérico", db_column='Ingrediente_idIngrediente')
-    Cantidad = models.DecimalField(max_digits=10, decimal_places=2, default=0, db_column='Cantidad')
+    Receta = models.ForeignKey(Receta, on_delete=models.CASCADE)
+    Ingrediente = models.ForeignKey(Ingrediente, on_delete=models.CASCADE)
+    Cantidad = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
-        db_table = 'RecetaIngrediente'  # 👈 nombre exacto
+        db_table = "RecetaIngrediente"
 
     def __str__(self):
-        return f"{self.Cantidad} de {self.Ingrediente_idIngrediente} en {self.Receta_idReceta}"
+        return f"{self.Cantidad} de {self.Ingrediente.Nombre_Ingrediente}"
 
 
-# -------------------- COMPROBANTE --------------------
+# ============================================
+#               COMPROBANTE
+# ============================================
 class Comprobante(models.Model):
-    IdComprobante = models.AutoField(primary_key=True, db_column='IdComprobante')
-    Receta = models.CharField(max_length=100, default="Receta genérica", db_column='Receta')
-    Costo_Total = models.IntegerField(default=0, db_column='Costo_Total')
-    Factor_Multiplicacion = models.DecimalField(max_digits=10, decimal_places=4, default=1, db_column='Factor_Multiplicacion')
-    Iva = models.DecimalField(max_digits=10, decimal_places=4, default=0.19, db_column='Iva')
-    Precio_Bruto = models.IntegerField(default=0, db_column='Precio_Bruto')
+    Costo_Total = models.IntegerField()
+    Factor_Multiplicacion = models.DecimalField(max_digits=10, decimal_places=4)
+    Iva = models.DecimalField(max_digits=10, decimal_places=4)
+    Precio_Bruto = models.IntegerField(validators=[MinValueValidator(0)])
+    Receta = models.ForeignKey(Receta, on_delete=models.CASCADE)
 
     class Meta:
-        db_table = 'Comprobante'  # 👈 nombre exacto
+        db_table = "Comprobante"
 
     def __str__(self):
-        return f"Comprobante {self.IdComprobante} - {self.Receta}"
+        return f"Comprobante #{self.id}"
 
 
-# -------------------- HISTORIAL --------------------
+# ============================================
+#                 HISTORIAL
+# ============================================
 class Historial(models.Model):
-    idHistorial = models.AutoField(primary_key=True, db_column='idHistorial')
-    Fecha_Entrega = models.DateTimeField(blank=True, null=True, db_column='Fecha_Entrega')
-    Fecha_Modificacion = models.DateTimeField(auto_now=True, db_column='Fecha_Modificacion')
-    Usuario = models.CharField(max_length=100, default="Usuario genérico", db_column='Usuario')
-    Receta = models.CharField(max_length=100, default="Receta genérica", db_column='Receta')
-    Cambio_Realizado = models.TextField(blank=True, null=True, default="Sin cambios", db_column='Cambio_Realizado')
+    Fecha_Entrega = models.DateTimeField(null=True, blank=True)
+    Fecha_Modificacion = models.DateTimeField(auto_now=True)
+    Usuario = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True)
+    Receta = models.ForeignKey(Receta, on_delete=models.SET_NULL, null=True)
+    Cambio_Realizado = models.TextField(null=True, blank=True)
 
     class Meta:
-        db_table = 'Historial'  # 👈 nombre exacto
+        db_table = "Historial"
 
     def __str__(self):
-        return f"Historial {self.idHistorial} - Receta {self.Receta}"
+        return f"Historial cambio #{self.id}"
