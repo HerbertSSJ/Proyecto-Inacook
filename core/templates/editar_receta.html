@@ -14,8 +14,7 @@
         <!-- IMAGEN ACTUAL -->
         {% if receta.imagen %}
         <p><strong>Imagen actual:</strong></p>
-        <img src="{{ receta.imagen.url }}" 
-             style="width:300px; border-radius:10px; margin-bottom:15px;">
+        <img src="{{ receta.imagen.url }}" style="width:300px; border-radius:10px; margin-bottom:15px;">
         {% endif %}
 
         <!-- FORM DJANGO -->
@@ -34,12 +33,10 @@
             <select id="ingrediente-select" class="form-select">
                 <option value="">Seleccionar</option>
                 {% for ingrediente in ingredientes %}
-                    <option value="{{ ingrediente.id }}"
-                        data-precio="{{ ingrediente.Costo_Unitario }}"
-                        data-calidad="{{ ingrediente.Calidad }}"
-                        data-abrev="{{ ingrediente.UnidadMedicion.Abreviatura }}">
-                        {{ ingrediente.Nombre_Ingrediente }}
-                    </option>
+                <option value="{{ ingrediente.id }}" data-precio="{{ ingrediente.Costo_Unitario }}"
+                    data-calidad="{{ ingrediente.Calidad }}" data-abrev="{{ ingrediente.UnidadMedicion.Abreviatura }}">
+                    {{ ingrediente.Nombre_Ingrediente }}
+                </option>
                 {% endfor %}
             </select>
 
@@ -51,9 +48,9 @@
             <label>Unidad</label>
             <select id="unidad-select" class="form-select">
                 {% for unidad in unidades %}
-                    <option value="{{ unidad.Abreviatura }}">
-                        {{ unidad.Nombre_Unidad }} ({{ unidad.Abreviatura }})
-                    </option>
+                <option value="{{ unidad.Abreviatura }}">
+                    {{ unidad.Nombre_Unidad }} ({{ unidad.Abreviatura }})
+                </option>
                 {% endfor %}
             </select>
 
@@ -84,42 +81,44 @@
 </div>
 
 <script>
-// MAPEO INGREDIENTES
-const ingredientesBD = {
-    {% for ing in ingredientes %}
+    // MAPEO INGREDIENTES
+    const ingredientesBD = {
+        {% for ing in ingredientes %}
     "{{ ing.id }}": {
-        nombre: "{{ ing.Nombre_Ingrediente }}",
-        precio: "{{ ing.Costo_Unitario }}",
-        calidad: "{{ ing.Calidad }}",
-        unidad: "{{ ing.UnidadMedicion.Abreviatura }}"
-    },
+        nombre: "{{ ing.Nombre_Ingrediente|escapejs }}",
+            precio: { { ing.Costo_Unitario } },
+        calidad: "{{ ing.Calidad|escapejs }}",
+            unidad: "{{ ing.UnidadMedicion.Abreviatura|escapejs }}"
+    } {% if not forloop.last %}, {% endif %}
     {% endfor %}
-};
+    };
 
-// INGREDIENTES EXISTENTES EN BD
-let ingredientesLista = [
-    {% for ri in receta_ingredientes %}
+
+
+    // INGREDIENTES EXISTENTES EN BD
+    let ingredientesLista = [
+        {% for ri in receta_ingredientes %}
     {
         id: "{{ ri.Ingrediente.id }}",
-        nombre: "{{ ri.Ingrediente.Nombre_Ingrediente }}",
-        cantidad: "{{ ri.Cantidad }}",
-        unidad: "{{ ri.Ingrediente.UnidadMedicion.Abreviatura }}",
-        precio: "{{ ri.Ingrediente.Costo_Unitario }}",
-        calidad: "{{ ri.Ingrediente.Calidad }}"
-    },
+            nombre: "{{ ri.Ingrediente.Nombre_Ingrediente|escapejs }}",
+                cantidad: "{{ ri.Cantidad }}",
+                    unidad: "{{ ri.Ingrediente.UnidadMedicion.Abreviatura|escapejs }}",
+                        precio: "{{ ri.Ingrediente.Costo_Unitario }}",
+                            calidad: "{{ ri.Ingrediente.Calidad|escapejs }}"
+    } {% if not forloop.last %}, {% endif %}
     {% endfor %}
-];
+    ];
 
 
-const tablaBody = document.querySelector("#ingredientes-table tbody");
-const ingredientesJson = document.getElementById("ingredientes-json");
+    const tablaBody = document.querySelector("#ingredientes-table tbody");
+    const ingredientesJson = document.getElementById("ingredientes-json");
 
-// RENDER TABLA
-function renderTabla() {
-    tablaBody.innerHTML = "";
+    // RENDER TABLA
+    function renderTabla() {
+        tablaBody.innerHTML = "";
 
-    ingredientesLista.forEach((ing, i) => {
-        tablaBody.innerHTML += `
+        ingredientesLista.forEach((ing, i) => {
+            tablaBody.innerHTML += `
             <tr>
                 <td>${ing.nombre}</td>
                 <td>${ing.cantidad}</td>
@@ -129,43 +128,43 @@ function renderTabla() {
                 <td><button class="btn btn-danger eliminar" data-i="${i}">Eliminar</button></td>
             </tr>
         `;
-    });
+        });
 
-    document.querySelectorAll(".eliminar").forEach(btn => {
-        btn.onclick = e => {
-            ingredientesLista.splice(e.target.dataset.i, 1);
-            renderTabla();
-        };
-    });
+        document.querySelectorAll(".eliminar").forEach(btn => {
+            btn.onclick = e => {
+                ingredientesLista.splice(e.target.dataset.i, 1);
+                renderTabla();
+            };
+        });
 
-    ingredientesJson.value = JSON.stringify(ingredientesLista);
-}
+        ingredientesJson.value = JSON.stringify(ingredientesLista);
+    }
 
-// AGREGAR ING
-document.getElementById("add-ingrediente").onclick = () => {
-    const id = document.getElementById("ingrediente-select").value;
-    const cantidad = document.getElementById("cantidad-input").value;
-    const unidad = document.getElementById("unidad-select").value;
+    // AGREGAR ING
+    document.getElementById("add-ingrediente").onclick = () => {
+        const id = document.getElementById("ingrediente-select").value;
+        const cantidad = document.getElementById("cantidad-input").value;
+        const unidad = document.getElementById("unidad-select").value;
 
-    if (!id) return alert("Debes seleccionar un ingrediente.");
-    if (!cantidad || cantidad <= 0) return alert("Cantidad inválida");
+        if (!id) return alert("Debes seleccionar un ingrediente.");
+        if (!cantidad || cantidad <= 0) return alert("Cantidad inválida");
 
-    const d = ingredientesBD[id];
+        const d = ingredientesBD[id];
 
-    ingredientesLista.push({
-        id,
-        nombre: d.nombre,
-        cantidad,
-        unidad,
-        precio: d.precio,
-        calidad: d.calidad
-    });
+        ingredientesLista.push({
+            id,
+            nombre: d.nombre,
+            cantidad,
+            unidad,
+            precio: d.precio,
+            calidad: d.calidad
+        });
 
+        renderTabla();
+    };
+
+    // Render inicial
     renderTabla();
-};
-
-// Render inicial
-renderTabla();
 </script>
 
 {% endblock %}

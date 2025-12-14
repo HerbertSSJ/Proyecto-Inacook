@@ -3,9 +3,6 @@ from django.contrib.auth.models import User
 from django.db import models
 
 
-# ============================================
-#                   ROL
-# ============================================
 class Rol(models.Model):
     NombreRol = models.CharField(max_length=45, unique=True)
 
@@ -16,9 +13,6 @@ class Rol(models.Model):
         return self.NombreRol
 
 
-# ============================================
-#                 USUARIO
-# ============================================
 class Usuario(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     rol = models.ForeignKey("Rol", on_delete=models.SET_NULL, null=True)
@@ -30,9 +24,6 @@ class Usuario(models.Model):
         return self.user.username
 
 
-# ============================================
-#           UNIDAD DE MEDICIÓN
-# ============================================
 class UnidadMedicion(models.Model):
     Nombre_Unidad = models.CharField(max_length=100)
     Abreviatura = models.CharField(max_length=15)
@@ -44,10 +35,6 @@ class UnidadMedicion(models.Model):
         return f"{self.Nombre_Unidad} ({self.Abreviatura})"
 
 
-
-# ============================================
-#                INGREDIENTE
-# ============================================
 class Ingrediente(models.Model):
     Nombre_Ingrediente = models.CharField(max_length=100)
     Calidad = models.CharField(max_length=45)
@@ -61,9 +48,6 @@ class Ingrediente(models.Model):
         return self.Nombre_Ingrediente
 
 
-# ============================================
-#                 RECETA
-# ============================================
 class Receta(models.Model):
     Nombre_Receta = models.CharField(max_length=100)
     Categoria = models.CharField(max_length=45)
@@ -79,9 +63,6 @@ class Receta(models.Model):
         return self.Nombre_Receta
 
 
-# ============================================
-#           RECETA - INGREDIENTE (N-M)
-# ============================================
 class RecetaIngrediente(models.Model):
     Receta = models.ForeignKey(Receta, on_delete=models.CASCADE)
     Ingrediente = models.ForeignKey(Ingrediente, on_delete=models.CASCADE)
@@ -93,10 +74,6 @@ class RecetaIngrediente(models.Model):
     def __str__(self):
         return f"{self.Cantidad} de {self.Ingrediente.Nombre_Ingrediente}"
 
-
-# ============================================
-#               COMPROBANTE
-# ============================================
 class Comprobante(models.Model):
     Costo_Total = models.IntegerField()
     Factor_Multiplicacion = models.DecimalField(max_digits=10, decimal_places=4)
@@ -110,10 +87,6 @@ class Comprobante(models.Model):
     def __str__(self):
         return f"Comprobante #{self.id}"
 
-
-# ============================================
-#                 HISTORIAL
-# ============================================
 class Historial(models.Model):
     Fecha_Entrega = models.DateTimeField(null=True, blank=True)
     Fecha_Modificacion = models.DateTimeField(auto_now=True)

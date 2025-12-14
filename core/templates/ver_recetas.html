@@ -6,7 +6,7 @@
 {% block content %}
 <div class="container recetas-container">
 
-    <h1>Mis Recetas 🍽️</h1>
+    <h1>Mis Recetas</h1>
 
     {% if recetas_data %}
     <table class="tabla-recetas">
@@ -23,16 +23,16 @@
         </thead>
 
         <tbody>
-        {% for data in recetas_data %}
+            {% for data in recetas_data %}
             {% with receta=data.receta precio=data.precio %}
             <tr>
 
                 <!-- Imagen -->
                 <td style="text-align:center;">
                     {% if receta.imagen %}
-                        <img src="{{ receta.imagen.url }}" class="tabla-img">
+                    <img src="{{ receta.imagen.url }}" class="tabla-img">
                     {% else %}
-                        <span class="no-image">Sin imagen</span>
+                    <span class="no-image">Sin imagen</span>
                     {% endif %}
                 </td>
 
@@ -43,9 +43,9 @@
 
                 <td>
                     {% if precio != "No calculado" %}
-                        ${{ precio }}
+                    ${{ precio }}
                     {% else %}
-                        No calculado
+                    No calculado
                     {% endif %}
                 </td>
 
@@ -58,7 +58,7 @@
 
             </tr>
             {% endwith %}
-        {% endfor %}
+            {% endfor %}
         </tbody>
     </table>
 

@@ -98,7 +98,9 @@ body {
     box-shadow: 0 0 20px rgba(255, 77, 77, 0.3);
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
     color: #ff4d4d;
     text-align: center;
     margin-bottom: 1.5rem;
@@ -111,7 +113,9 @@ form {
     gap: 1rem;
 }
 
-input, select, textarea {
+input,
+select,
+textarea {
     padding: 0.8rem;
     border: 1px solid #ff4d4d;
     border-radius: 10px;
@@ -119,14 +123,17 @@ input, select, textarea {
     color: #fff;
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
     border-color: #fff;
     box-shadow: 0 0 8px #ff4d4d;
     outline: none;
 }
 
 /* ------------------- BUTTONS ------------------- */
-button, .btn {
+button,
+.btn {
     background-color: #ff4d4d;
     color: #fff;
     border: none;
@@ -138,7 +145,8 @@ button, .btn {
     text-align: center;
 }
 
-button:hover, .btn:hover {
+button:hover,
+.btn:hover {
     background-color: #fff;
     color: #ff4d4d;
     box-shadow: 0 0 15px #ff4d4d;
@@ -167,7 +175,8 @@ table {
     box-shadow: 0 2px 6px rgba(255, 77, 77, 0.2);
 }
 
-th, td {
+th,
+td {
     padding: 12px;
     border-bottom: 1px solid #444;
 }
@@ -177,8 +186,13 @@ th {
     color: white;
 }
 
-tr:nth-child(even) { background-color: #252525; }
-tr:hover { background-color: #3a3a3a; }
+tr:nth-child(even) {
+    background-color: #252525;
+}
+
+tr:hover {
+    background-color: #3a3a3a;
+}
 
 /* ------------------- DASHBOARD ------------------- */
 .dashboard-section {
@@ -227,16 +241,18 @@ tr:hover { background-color: #3a3a3a; }
 }
 
 /* ------------------- RESPONSIVE ------------------- */
-@media(max-width:600px){
+@media(max-width:600px) {
     .nav-container {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
     }
+
     .nav-links {
         flex-direction: column;
         gap: 10px;
     }
+
     .formulario {
         width: 90%;
     }
@@ -350,7 +366,8 @@ tr:hover { background-color: #3a3a3a; }
     background: #2a2a2a;
     padding: 25px;
     border-radius: 20px;
-    width: 350px; /* ← ANCHO FIJO PARA ALINEAR DISPLAY */
+    width: 350px;
+    /* ← ANCHO FIJO PARA ALINEAR DISPLAY */
     box-shadow: 0 0 15px rgba(255, 77, 77, 0.25);
 }
 
@@ -367,7 +384,8 @@ tr:hover { background-color: #3a3a3a; }
     border: 2px solid #ff4d4d;
     background: #1f1f1f;
     color: white;
-    box-sizing: border-box; /* ← EVITA QUE SE SALGA */
+    box-sizing: border-box;
+    /* ← EVITA QUE SE SALGA */
 }
 
 /* BOTONES */
@@ -425,5 +443,71 @@ tr:hover { background-color: #3a3a3a; }
     margin-top: 25px;
     display: flex;
     justify-content: center;
+
     gap: 15px;
+}
+
+/* ------------------- ALERTS / TOASTS ------------------- */
+.messages-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+.alert {
+    padding: 15px 25px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.5s ease-out forwards;
+    min-width: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Center text */
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.alert.success {
+    background-color: #28a745;
+    /* Green */
+    border-left: 5px solid #1e7e34;
+}
+
+.alert.error,
+.alert.danger {
+    background-color: #dc3545;
+    /* Red */
+    border-left: 5px solid #bd2130;
+}
+
+.alert.warning {
+    background-color: #ffc107;
+    /* Yellow */
+    color: #333;
+    border-left: 5px solid #d39e00;
+}
+
+.alert.info {
+    background-color: #17a2b8;
+    /* Cyan */
+    border-left: 5px solid #117a8b;
 }

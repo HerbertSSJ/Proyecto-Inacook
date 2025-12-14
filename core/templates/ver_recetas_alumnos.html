@@ -6,7 +6,7 @@
 {% block content %}
 <div class="container recetas-alumnos-container">
 
-    <h1>Recetas de Alumnos 👨‍🏫</h1>
+    <h1>Recetas de Alumnos</h1>
 
     <!--  Filtros -->
     <div class="card-filtros">
@@ -22,7 +22,7 @@
                 <select name="categoria">
                     <option value="">Todas</option>
                     {% for categoria in categorias %}
-                    <option value="{{ categoria }}" {% if request.GET.categoria == categoria %}selected{% endif %}>
+                    <option value="{{ categoria }}" {% if request.GET.categoria==categoria %}selected{% endif %}>
                         {{ categoria }}
                     </option>
                     {% endfor %}
@@ -34,7 +34,7 @@
                 <select name="letra">
                     <option value="">Todas</option>
                     {% for letra in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" %}
-                    <option value="{{ letra }}" {% if request.GET.letra == letra %}selected{% endif %}>
+                    <option value="{{ letra }}" {% if request.GET.letra==letra %}selected{% endif %}>
                         {{ letra }}
                     </option>
                     {% endfor %}
@@ -61,15 +61,15 @@
         </thead>
 
         <tbody>
-        {% for data in recetas_data %}
+            {% for data in recetas_data %}
             {% with receta=data.receta precio=data.precio usuario=data.usuario %}
             <tr>
 
                 <td style="text-align:center;">
                     {% if receta.imagen %}
-                        <img src="{{ receta.imagen.url }}" class="tabla-img">
+                    <img src="{{ receta.imagen.url }}" class="tabla-img">
                     {% else %}
-                        <span class="no-image">Sin imagen</span>
+                    <span class="no-image">Sin imagen</span>
                     {% endif %}
                 </td>
 
@@ -80,9 +80,9 @@
 
                 <td>
                     {% if precio != "No calculado" %}
-                        ${{ precio }}
+                    ${{ precio }}
                     {% else %}
-                        No calculado
+                    No calculado
                     {% endif %}
                 </td>
 
@@ -92,7 +92,7 @@
 
             </tr>
             {% endwith %}
-        {% endfor %}
+            {% endfor %}
         </tbody>
     </table>
 

@@ -86,6 +86,7 @@ def home(request):
 
         if user:
             login(request, user)
+            messages.success(request, "Inicio de sesión correcto.")
             return redirect("dashboard")
         else:
             messages.error(request, "Usuario o contraseña incorrectos.")
