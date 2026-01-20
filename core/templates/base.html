@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Inacook{% endblock %}</title>
+
+    <!-- CSS principal -->
+    <link rel="stylesheet" href="{% static 'core/css/styles.css' %}">
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="nav-container">
+
+            <!-- Logo principal -->
+            <a href="{% url 'dashboard' %}" class="nav-logo">Inacook</a>
+
+            <!-- Enlaces -->
+            <ul class="nav-links">
+
+                {% if user.is_authenticated %}
+
+                    <!-- Opciones usuario normal -->
+                    <li><a href="{% url 'ver_recetas' %}">Mis Recetas</a></li>
+                    <li><a href="{% url 'subir_receta' %}">Subir Receta</a></li>
+                    <li><a href="{% url 'perfil' %}">Perfil</a></li>
+                    <li><a href="{% url 'calculadora' %}">Calculadora</a></li>
+
+                    {% if user.usuario.rol and user.usuario.rol.NombreRol == "Profesor" %}
+                        <!-- Opciones exclusivas profesor -->
+                        <li><a href="{% url 'ver_recetas_alumnos' %}">Recetas de Alumnos</a></li>
+                        <li><a href="{% url 'ver_ingredientes' %}">Ingredientes</a></li>
+                        <li><a href="{% url 'crear_ingrediente' %}">Nuevo Ingrediente</a></li>
+                    {% endif %}
+
+                    <!-- Logout seguro -->
+                    <li>
+                        <form id="logout-form" action="{% url 'logout' %}" method="post" style="display:none;">
+                            {% csrf_token %}
+                        </form>
+
+                        <a href="#"
+                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            Cerrar Sesión
+                        </a>
+                    </li>
+
+                {% else %}
+                    <!-- Usuario NO autenticado -->
+                    <li><a href="{% url 'home' %}">Iniciar Sesión</a></li>
+                {% endif %}
+
+            </ul>
+        </div>
+    </nav>
+
+    <!-- MENSAJES FLASH -->
+    <div class="messages-container">
+        {% if messages %}
+            {% for m in messages %}
+                <div class="alert {{ m.tags }}">
+                    {{ m }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Confirmar borrado de receta{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Confirmar borrado de receta: {{ receta.Nombre_Receta }}</h2>
+    <hr>
+
+    {% if imagen %}
+        <div class="mb-3 text-center">
+            <img src="{{ imagen }}" alt="{{ receta.Nombre_Receta }}" class="img-fluid rounded shadow" style="max-height: 300px;">
+        </div>
+    {% endif %}
+
+    <h4>Datos de la receta</h4>
+    <ul>
+        <li><strong>Categoría:</strong> {{ receta.Categoria|default:"Sin categoría" }}</li>
+        <li><strong>Aporte calórico:</strong> {{ receta.Aporte_Calorico|default:"No definido" }} kcal</li>
+        <li><strong>Tiempo de preparación:</strong> {{ receta.Tiempo_Preparacion|default:"No definido" }}</li>
+        <li><strong>Procedimiento:</strong> {{ receta.Procedimiento|default:"Sin procedimiento" }}</li>
+    </ul>
+
+    <h4>Ingredientes asociados</h4>
+    {% if ingredientes %}
+        <table class="table table-bordered mt-3">
+            <thead class="table-light">
+                <tr>
+                    <th>Ingrediente</th>
+                    <th>Cantidad</th>
+                    <th>Unidad</th>
+                    <th>Precio aproximado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ing in ingredientes %}
+                <tr>
+                    <td>{{ ing.nombre }}</td>
+                    <td>{{ ing.cantidad }}</td>
+                    <td>{{ ing.unidad }}</td>
+                    <td>${{ ing.precio }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No hay ingredientes asociados a esta receta.</p>
+    {% endif %}
+
+    <div class="alert alert-danger mt-4">
+        ¿Seguro que deseas eliminar esta receta? Esta acción no se puede deshacer.
+    </div>
+
+    <form method="POST" class="mt-3">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Sí, borrar definitivamente</button>
+        <a href="{% url 'ver_recetas' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

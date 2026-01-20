@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Agregar Ingrediente - Inacook{% endblock %}
+
+{% block content %}
+<div class="container crear-ingrediente-container">
+
+    <h1>Agregar Nuevo Ingrediente</h1>
+
+    <form method="post" class="formulario">
+        {% csrf_token %}
+
+        <div class="form-section">
+
+            <!-- NOMBRE -->
+            <label>Nombre del Ingrediente:</label>
+            {{ form.Nombre_Ingrediente }}
+            {% for error in form.Nombre_Ingrediente.errors %}
+            <p class="error-msg">{{ error }}</p>
+            {% endfor %}
+
+            <!-- CALIDAD -->
+            <label>Calidad:</label>
+            {{ form.Calidad }}
+            {% for error in form.Calidad.errors %}
+            <p class="error-msg">{{ error }}</p>
+            {% endfor %}
+
+            <!-- COSTO -->
+            <label>Costo Unitario:</label>
+            {{ form.Costo_Unitario }}
+            {% for error in form.Costo_Unitario.errors %}
+            <p class="error-msg">{{ error }}</p>
+            {% endfor %}
+
+            <!-- UNIDAD -->
+            <label>Unidad de Medición:</label>
+            {{ form.UnidadMedicion }}
+            {% for error in form.UnidadMedicion.errors %}
+            <p class="error-msg">{{ error }}</p>
+            {% endfor %}
+
+            <!-- ERRORES GENERALES -->
+            {% if form.non_field_errors %}
+            <div class="error-msg">
+                {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="form-actions" style="margin-top: 20px;">
+
+            <!-- Botón verde guardar -->
+            <button type="submit" class="btn btn-primary" style="background-color:#28a745; border-color:#28a745;">
+                Guardar ingrediente
+            </button>
+
+            <!-- Botón rojo volver -->
+            <a href="{% url 'ver_ingredientes' %}" class="btn btn-secondary"
+                style="background-color:#dc3545; border-color:#dc3545; color:white;">
+                Cancelar
+            </a>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

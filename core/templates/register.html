@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Registro - Inacook{% endblock %}
+
+{% block content %}
+<div class="register-container">
+
+    <h1 class="register-title">Crear cuenta</h1>
+
+    <!-- Los mensajes se muestran automáticamente en el base.html -->
+
+    <form method="POST" class="register-form">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="nombre">Nombre de usuario:</label>
+            <input 
+                type="text" 
+                name="nombre" 
+                id="nombre" 
+                placeholder="Ej: hurb123"
+                required
+                autocomplete="username"
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="correo">Correo electrónico:</label>
+            <input 
+                type="email" 
+                name="correo" 
+                id="correo" 
+                placeholder="Ej: hurb@example.com"
+                required
+                autocomplete="email"
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="contraseña">Contraseña:</label>
+            <input 
+                type="password" 
+                name="contraseña" 
+                id="contraseña" 
+                placeholder="Tu contraseña"
+                required
+                autocomplete="new-password"
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="rol">Rol:</label>
+            <select name="rol" id="rol" required class="form-select">
+                <option value="">Selecciona un rol</option>
+                {% for rol in roles %}
+                    <option value="{{ rol.id }}">{{ rol.NombreRol }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn-primary register-btn">
+            Registrarse
+        </button>
+    </form>
+
+    <p class="login-text">
+        ¿Ya tienes cuenta?
+        <a href="{% url 'home' %}" class="link-login">Inicia sesión aquí</a>
+    </p>
+
+</div>
+{% endblock %}

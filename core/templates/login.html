@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Iniciar sesión - Inacook{% endblock %}
+
+{% block content %}
+<div class="login-container">
+
+    <h1 class="login-title">Iniciar sesión</h1>
+
+    <!-- Los mensajes se muestran sólo en el base.html -->
+    
+    <form method="POST" class="login-form">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="nombre">Nombre de usuario:</label>
+            <input 
+                type="text" 
+                name="nombre" 
+                id="nombre" 
+                required 
+                placeholder="Ej: hurb123"
+                autocomplete="username"
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="contraseña">Contraseña:</label>
+            <input 
+                type="password" 
+                name="contraseña" 
+                id="contraseña" 
+                required 
+                placeholder="Tu contraseña"
+                autocomplete="current-password"
+            >
+        </div>
+
+        <button type="submit" class="btn-primary login-btn">
+            Iniciar sesión
+        </button>
+    </form>
+
+    <p class="register-text">
+        ¿No tienes cuenta?
+        <a href="{% url 'register' %}" class="link-register">Regístrate aquí</a>
+    </p>
+</div>
+{% endblock %}

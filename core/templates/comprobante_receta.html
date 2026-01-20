@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Comprobante - {{ receta.Nombre_Receta }}{% endblock %}
+
+{% block content %}
+<div class="container comprobante-container">
+
+    <h1 class="titulo-comprobante">Comprobante de Receta</h1>
+
+    <div class="comprobante-header">
+        <p><strong>Receta:</strong> {{ receta.Nombre_Receta }}</p>
+        <p><strong>Categoría:</strong> {{ receta.Categoria }}</p>
+        <p><strong>Tiempo de preparación:</strong> {{ receta.Tiempo_Preparacion }}</p>
+    </div>
+
+    <hr>
+
+    <!-- INGREDIENTES -->
+    <h2>Ingredientes utilizados</h2>
+
+    <table class="ingredientes-tabla">
+        <thead>
+            <tr>
+                <th>Ingrediente</th>
+                <th>Cantidad</th>
+                <th>Unidad</th>
+                <th>Precio Unitario ($)</th>
+                <th>Subtotal ($)</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for ing in ingredientes_detalle %}
+            <tr>
+                <td>{{ ing.nombre }}</td>
+                <td>{{ ing.cantidad }}</td>
+                <td>{{ ing.unidad }}</td>
+                <td>${{ ing.precio_unitario|floatformat:0 }}</td>
+                <td>${{ ing.subtotal|floatformat:0 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <hr>
+
+    <!-- TOTALES -->
+    <div class="comprobante-totales">
+
+        {% if comprobante %}
+        <p><strong>Subtotal:</strong> ${{ subtotal|floatformat:0 }}</p>
+        <p><strong>IVA (19%):</strong> ${{ iva_monto|floatformat:0 }}</p>
+        <p><strong>Factor de multiplicación:</strong> {{ comprobante.Factor_Multiplicacion }}</p>
+
+        <h2><strong>Total final:</strong> ${{ total_final|floatformat:0 }}</h2>
+        {% else %}
+        <p>No existe un comprobante registrado para esta receta.</p>
+        {% endif %}
+
+    </div>
+
+    <div class="acciones-comprobante">
+        <a href="{% url 'ver_recetas' %}" class="btn">Volver a mis recetas</a>
+    </div>
+
+</div>
+{% endblock %}

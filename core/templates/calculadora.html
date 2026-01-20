@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Calculadora - Inacook{% endblock %}
+
+{% block content %}
+
+<style>
+/* ================= CALCULADORA ================= */
+
+.calculadora-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+}
+
+.calculadora {
+    background: #2a2a2a;
+    padding: 25px;
+    border-radius: 20px;
+    width: 330px;
+    box-shadow: 0 0 15px rgba(255, 77, 77, 0.25);
+}
+
+.display input {
+    width: 100%;
+    padding: 18px;
+    font-size: 1.6rem;
+    text-align: right;
+    border-radius: 12px;
+    border: 2px solid #ff4d4d;
+    background: #1f1f1f;
+    color: white;
+}
+
+/* GRID DE BOTONES */
+.buttons {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.buttons button {
+    padding: 15px;
+    border-radius: 15px;
+    background: #ff4d4d;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.buttons button:hover {
+    background: white;
+    color: #ff4d4d;
+    transform: scale(1.05);
+}
+
+/* Operadores */
+.operator {
+    background: #d93636;
+}
+
+.operator:hover {
+    background: #ffffff;
+    color: #d93636;
+}
+
+/* Botón limpiar */
+.clear {
+    background: #444;
+}
+
+.clear:hover {
+    background: #ff4d4d;
+    color: #fff;
+}
+</style>
+
+<div class="calculadora-container">
+    <div class="calculadora">
+
+        <div class="display">
+            <input type="text" id="result" value="0" readonly>
+        </div>
+
+        <div class="buttons">
+            <button onclick="appendValue('7')">7</button>
+            <button onclick="appendValue('8')">8</button>
+            <button onclick="appendValue('9')">9</button>
+            <button class="operator" onclick="appendValue('+')">+</button>
+
+            <button onclick="appendValue('4')">4</button>
+            <button onclick="appendValue('5')">5</button>
+            <button onclick="appendValue('6')">6</button>
+            <button class="operator" onclick="appendValue('-')">-</button>
+
+            <button onclick="appendValue('1')">1</button>
+            <button onclick="appendValue('2')">2</button>
+            <button onclick="appendValue('3')">3</button>
+            <button class="operator" onclick="appendValue('*')">×</button>
+
+            <button class="clear" onclick="clearResult()">C</button>
+            <button onclick="appendValue('0')">0</button>
+            <button class="operator" onclick="CalculateResult()">=</button>
+            <button class="operator" onclick="appendValue('/')">÷</button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+let currentInput = "";
+
+// Añadir valores
+function appendValue(value) {
+    currentInput += value;
+    document.getElementById("result").value = currentInput;
+}
+
+// Limpiar
+function clearResult() {
+    currentInput = "";
+    document.getElementById("result").value = "0";
+}
+
+// Calcular
+function CalculateResult() {
+    try {
+        let expression = currentInput.replace(/×/g, "*").replace(/÷/g, "/");
+        let result = eval(expression);
+        document.getElementById("result").value = result;
+        currentInput = result.toString();
+    } catch {
+        document.getElementById("result").value = "Error";
+        currentInput = "";
+    }
+}
+</script>
+
+{% endblock %}

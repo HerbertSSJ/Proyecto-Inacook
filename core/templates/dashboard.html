@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - Inacook{% endblock %}
+
+{% block content %}
+
+<div class="container dashboard-container">
+
+    <!-- Título -->
+    <h1 class="dashboard-title">
+        Bienvenido, {{ nombre }}
+    </h1>
+
+    <!-- Rol del usuario -->
+    <p class="dashboard-role">
+        <strong>Rol:</strong> {{ rol }}
+    </p>
+
+    <p class="dashboard-description">
+        Este es tu panel principal. Desde aquí puedes gestionar tus recetas, visualizar tu historial
+        y acceder a las herramientas de la aplicación.
+    </p>
+
+    <!--==========================================
+        ACCIONES RÁPIDAS
+    ============================================-->
+    <div class="dashboard-section">
+        <h2 class="section-title">Acciones rápidas</h2>
+
+        <ul class="menu-list dashboard-buttons">
+            <li><a href="{% url 'subir_receta' %}" class="btn btn-primary dash-btn">Subir nueva receta</a></li>
+            <li><a href="{% url 'ver_recetas' %}" class="btn btn-primary dash-btn">Ver mis recetas</a></li>
+            <li><a href="{% url 'calculadora' %}" class="btn btn-primary dash-btn">Calculadora</a></li>
+            <li><a href="{% url 'ver_historial' %}" class="btn btn-primary dash-btn">Historial</a></li>
+        </ul>
+    </div>
+
+    <!--==========================================
+        OPCIONES PARA PROFESOR
+    ============================================-->
+    {% if user.usuario.rol and user.usuario.rol.NombreRol == "Profesor" %}
+    <div class="dashboard-section profesor-section">
+        <h2 class="section-title">Opciones para profesor</h2>
+
+        <ul class="menu-list dashboard-buttons">
+            <li><a href="{% url 'crear_ingrediente' %}" class="btn btn-secondary dash-btn">Agregar Ingrediente</a>
+            </li>
+            <li><a href="{% url 'ver_ingredientes' %}" class="btn btn-secondary dash-btn">Ver Ingredientes</a></li>
+            <li><a href="{% url 'ver_recetas_alumnos' %}" class="btn btn-secondary dash-btn">Ver Recetas de
+                    Alumnos</a></li>
+        </ul>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
